@@ -1,0 +1,83 @@
+@import "tailwindcss";
+@import "@fontsource/frank-ruhl-libre/400.css";
+@import "@fontsource/frank-ruhl-libre/500.css";
+@import "@fontsource/frank-ruhl-libre/700.css";
+@import "@fontsource/noto-sans-hebrew/400.css";
+@import "@fontsource/noto-sans-hebrew/500.css";
+@import "@fontsource/noto-sans-hebrew/600.css";
+@import "@fontsource/noto-sans-hebrew/700.css";
+
+/* ============================================================
+   Design tokens — "Gan Itztrubal" (גן אצטרובל / Pinecone Kindergarten)
+   Palette grounded in the pinecone/forest subject:
+   warm paper cream, pine green, toasted amber, deep forest text.
+   ============================================================ */
+:root {
+  --color-paper: #FBF6EC;       /* warm cream background, evokes paper forms */
+  --color-card: #FFFEF9;        /* slightly lifted warm white for cards */
+  --color-pine: #2F5233;        /* primary — deep pine green */
+  --color-pine-dark: #1C2B1E;   /* deep forest — body text */
+  --color-amber: #D98A3D;       /* toasted amber accent — pinecone scale color, CTAs */
+  --color-amber-dark: #B8702A;  /* amber hover/pressed */
+  --color-sage: #A8BFA0;        /* soft sage — secondary borders/surfaces */
+  --color-sage-light: #E4ECE0;  /* pale sage tint backgrounds */
+  --color-clay: #C4694F;        /* warm terracotta for errors/required marks, not harsh red */
+  --color-line: #DCD3BE;        /* hairline border on warm cream */
+}
+
+@theme inline {
+  --color-paper: var(--color-paper);
+  --color-card: var(--color-card);
+  --color-pine: var(--color-pine);
+  --color-pine-dark: var(--color-pine-dark);
+  --color-amber: var(--color-amber);
+  --color-amber-dark: var(--color-amber-dark);
+  --color-sage: var(--color-sage);
+  --color-sage-light: var(--color-sage-light);
+  --color-clay: var(--color-clay);
+  --color-line: var(--color-line);
+  --font-display: 'Frank Ruhl Libre', serif;
+  --font-body: 'Noto Sans Hebrew', 'Noto Sans', sans-serif;
+}
+
+html {
+  direction: rtl;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-pine-dark);
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+}
+
+/* Visible keyboard focus ring everywhere, respecting the palette */
+:focus-visible {
+  outline: 2px solid var(--color-amber);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom scrollbar tuned to palette, subtle */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-paper);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-sage);
+  border-radius: 6px;
+}
