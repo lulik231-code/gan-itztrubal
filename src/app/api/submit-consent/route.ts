@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
 
     if (uploadError) {
       console.error("PDF upload failed:", uploadError);
-      return NextResponse.json({ error: `שגיאת העלאה: ${uploadError.message}` }, { status: 500 });
+      return NextResponse.json({ error: "שגיאה בשמירת הקובץ. נסו שוב." }, { status: 500 });
     }
 
     // ---- insert the submission row ----
@@ -118,13 +118,12 @@ export async function POST(req: NextRequest) {
         );
       }
       console.error("Submission insert failed:", insertError);
-      return NextResponse.json({ error: `שגיאת שמירה: ${insertError.message}` }, { status: 500 });
+      return NextResponse.json({ error: "שגיאה בשמירת ההגשה. נסו שוב." }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Unexpected error in submit-consent:", err);
-    const detail = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: `שגיאה: ${detail}` }, { status: 500 });
+    return NextResponse.json({ error: "שגיאה לא צפויה. נסו שוב מאוחר יותר." }, { status: 500 });
   }
 }
