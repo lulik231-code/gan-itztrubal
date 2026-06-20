@@ -1,6 +1,8 @@
 import { PDFDocument, rgb, RGB } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { drawRTLLine, drawRTLParagraph } from "./rtlText";
+import { regularFontBase64 } from "./fonts/regularFontBase64";
+import { boldFontBase64 } from "./fonts/boldFontBase64";
 import type { Event, Child, ParentFormInput } from "@/types";
 
 // ============================================================
@@ -29,25 +31,20 @@ const MARGIN = 50;
 const RIGHT = PAGE_W - MARGIN;
 const LEFT = MARGIN;
 
-let fontRegularBytesCache: ArrayBuffer | null = null;
-let fontBoldBytesCache: ArrayBuffer | null = null;
+let fontRegularBytesCache: Uint8Array | null = null;
+let fontBoldBytesCache: Uint8Array | null = null;
 
-async function loadFontBytes(): Promise<{ regular: ArrayBuffer; bold: ArrayBuffer }> {
+function loadFontBytes(): { regular: Uint8Array; bold: Uint8Array } {
   if (fontRegularBytesCache && fontBoldBytesCache) {
     return { regular: fontRegularBytesCache, bold: fontBoldBytesCache };
   }
-  // In Next.js server runtime, public/ assets are available on disk relative
-  // to the project root at runtime (not via HTTP fetch) inside route handlers.
-  const fs = await import("fs/promises");
-  const path = await import("path");
-  const regularPath = path.join(process.cwd(), "public/fonts/NotoSansHebrew-Regular.ttf");
-  const boldPath = path.join(process.cwd(), "public/fonts/NotoSansHebrew-Bold.ttf");
-  const [regular, bold] = await Promise.all([
-    fs.readFile(regularPath),
-    fs.readFile(boldPath),
-  ]);
-  fontRegularBytesCache = regular.buffer.slice(regular.byteOffset, regular.byteOffset + regular.byteLength);
-  fontBoldBytesCache = bold.buffer.slice(bold.byteOffset, bold.byteOffset + bold.byteLength);
+  // Fonts are embedded as base64 strings at build time (see ./fonts/) rather
+  // than read from public/ on disk at runtime. Serverless deployment targets
+  // (Netlify Functions, etc.) don't reliably expose the original public/
+  // directory layout relative to process.cwd() inside the bundled function,
+  // so filesystem reads silently failed there. Embedding sidesteps that.
+  fontRegularBytesCache = Uint8Array.from(Buffer.from(regularFontBase64, "base64"));
+  fontBoldBytesCache = Uint8Array.from(Buffer.from(boldFontBase64, "base64"));
   return { regular: fontRegularBytesCache, bold: fontBoldBytesCache };
 }
 
@@ -88,7 +85,7 @@ export async function generateConsentPdf(params: GenerateConsentPdfParams): Prom
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
 
-  const { regular, bold } = await loadFontBytes();
+  const { regular, bold } = loadFontBytes();
   const font = await pdfDoc.embedFont(regular, { subset: true });
   const fontBold = await pdfDoc.embedFont(bold, { subset: true });
 
