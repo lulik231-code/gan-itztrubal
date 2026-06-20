@@ -75,8 +75,14 @@ export async function POST(req: NextRequest) {
     const pdfBytes = await generateConsentPdf({ event, child, form, submittedAt });
 
     // ---- upload to storage ----
-    const safeChildName = child.full_name.replace(/[^\u0590-\u05FFa-zA-Z0-9]/g, "_");
-    const storagePath = `${eventId}/${childId}_${Date.now()}_${safeChildName}.pdf`;
+    // Storage object keys must be ASCII-safe: Supabase Storage's S3-compatible
+    // backend rejects keys containing non-ASCII bytes (Hebrew characters caused
+    // every upload to fail with a 400, even though the previous regex correctly
+    // identified Hebrew chars as "safe to keep" for readability — they are NOT
+    // safe in a storage key, only in display text). Use a plain ASCII-only
+    // path; the actual Hebrew child name is already stored in submissions.parent_full_name
+    // and embedded in the PDF itself, so nothing is lost by keeping the path opaque.
+    const storagePath = `${eventId}/${childId}_${Date.now()}.pdf`;
 
     const { error: uploadError } = await supabase.storage
       .from("consent-pdfs")
