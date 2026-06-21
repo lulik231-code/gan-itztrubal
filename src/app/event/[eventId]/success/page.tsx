@@ -20,7 +20,7 @@ export default async function SuccessPage({
           <h2 className="text-2xl font-display text-pine mb-2">הטופס נשלח בהצלחה!</h2>
           <p className="text-pine-dark/80 leading-relaxed">
             {child ? `ההסכמה עבור ${child} נקלטה ` : "ההסכמה נקלטה "}
-            במערכת. תודה שמיליתם את הטופס.
+            במערכת. תודה שמילאתם את הטופס.
           </p>
           <p className="text-sm text-pine-dark/60 mt-3">
             המסמך החתום נשמר במערכת הגן ואין צורך לשלוח אותו בנפרד.
