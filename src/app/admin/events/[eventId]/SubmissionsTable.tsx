@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Loader2, CheckCircle2, XCircle } from "lucide-react";
-import { getSignedPdfUrl } from "./pdfActions";
+import { useRouter } from "next/navigation";
+import { Download, Loader2, CheckCircle2, XCircle, Trash2 } from "lucide-react";
+import { getSignedPdfUrl, deleteSubmissionAction } from "./pdfActions";
 import type { SubmissionWithRelations } from "@/types";
 
 function formatDateTimeHebrew(iso: string): string {
@@ -13,6 +14,25 @@ function formatDateTimeHebrew(iso: string): string {
 
 export function SubmissionsTable({ submissions }: { submissions: SubmissionWithRelations[] }) {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const router = useRouter();
+
+  async function handleDelete(submission: SubmissionWithRelations) {
+    const childName = submission.children?.full_name ?? "הגשה זו";
+    if (!confirm(`למחוק את ההגשה של ${childName}?\nהפעולה אינה ניתנת לביטול.`)) return;
+
+    setDeletingId(submission.id);
+    try {
+      const result = await deleteSubmissionAction(submission.id, submission.pdf_storage_path);
+      if (!result.success) {
+        alert("שגיאה במחיקה. נסי שוב.");
+      } else {
+        router.refresh();
+      }
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   async function handleDownload(submission: SubmissionWithRelations) {
     setDownloadingId(submission.id);
@@ -78,18 +98,32 @@ export function SubmissionsTable({ submissions }: { submissions: SubmissionWithR
                 {formatDateTimeHebrew(s.submitted_at)}
               </td>
               <td className="py-3">
-                <button
-                  onClick={() => handleDownload(s)}
-                  disabled={downloadingId === s.id}
-                  className="flex items-center gap-1.5 text-pine hover:text-amber-dark transition-colors text-sm disabled:opacity-50"
-                >
-                  {downloadingId === s.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Download className="h-4 w-4" />
-                  )}
-                  PDF
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => handleDownload(s)}
+                    disabled={downloadingId === s.id || deletingId === s.id}
+                    className="flex items-center gap-1.5 text-pine hover:text-amber-dark transition-colors text-sm disabled:opacity-50"
+                  >
+                    {downloadingId === s.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                    PDF
+                  </button>
+                  <button
+                    onClick={() => handleDelete(s)}
+                    disabled={deletingId === s.id || downloadingId === s.id}
+                    title="מחק הגשה"
+                    className="text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                  >
+                    {deletingId === s.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
