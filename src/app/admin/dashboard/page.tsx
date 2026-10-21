@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { Plus, CalendarDays, Users, FileCheck2 } from "lucide-react";
 import type { Event } from "@/types";
+import { CopyEventLink } from "@/components/CopyEventLink";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,8 @@ export default async function AdminDashboardPage() {
         {events?.map((event) => {
           const submissionCount = countByEvent.get(event.id) ?? 0;
           return (
-            <Link key={event.id} href={`/admin/events/${event.id}`}>
+            <div key={event.id} className="flex flex-col gap-1.5">
+            <Link href={`/admin/events/${event.id}`}>
               <Card className="p-5 hover:border-amber transition-colors">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
@@ -101,6 +103,10 @@ export default async function AdminDashboardPage() {
                 </div>
               </Card>
             </Link>
+            <div className="px-2">
+              <CopyEventLink eventId={event.id} />
+            </div>
+            </div>
           );
         })}
       </div>

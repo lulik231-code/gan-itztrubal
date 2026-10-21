@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { ConsentFileUploader } from "@/components/ConsentFileUploader";
 import { Card, Field, Input, Textarea, CheckboxRow } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { createEventAction } from "../actions";
@@ -14,6 +15,7 @@ export default function NewEventPage() {
   const [requiresHealth, setRequiresHealth] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const consentTextRef = useRef<HTMLTextAreaElement>(null);
 
   async function handleSubmit(formData: FormData) {
     setIsSubmitting(true);
@@ -53,10 +55,21 @@ export default function NewEventPage() {
         <Card className="p-5 flex flex-col gap-4">
           <Field label="טקסט הצהרת ההסכמה" required>
             <Textarea
+              ref={consentTextRef}
               name="consent_text"
               defaultValue={DEFAULT_CONSENT_TEXT}
               className="min-h-[110px]"
             />
+            <div className="mt-2">
+              <p className="text-xs text-pine-dark/50 mb-1.5">
+                או העלאת קובץ אישור מוכן (Word / PDF):
+              </p>
+              <ConsentFileUploader
+                onTextExtracted={(text) => {
+                  if (consentTextRef.current) consentTextRef.current.value = text;
+                }}
+              />
+            </div>
           </Field>
           <CheckboxRow
             id="requires_health_declaration"
