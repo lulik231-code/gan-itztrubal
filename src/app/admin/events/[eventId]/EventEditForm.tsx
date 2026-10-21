@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, Field, Input, Textarea, CheckboxRow } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { updateEventAction, deleteEventAction } from "../actions";
 import type { Event } from "@/types";
 import { Trash2, Check } from "lucide-react";
+import { ConsentFileUploader } from "@/components/ConsentFileUploader";
 
 export function EventEditForm({ event }: { event: Event }) {
   const [requiresHealth, setRequiresHealth] = useState(event.requires_health_declaration);
@@ -14,6 +15,15 @@ export function EventEditForm({ event }: { event: Event }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const consentTextRef = useRef<HTMLTextAreaElement>(null);
+
+  function handleExtractedText(text: string) {
+    if (consentTextRef.current) {
+      consentTextRef.current.value = text;
+      // Trigger React re-render for controlled components if needed
+      consentTextRef.current.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  }
 
   // Auto-hide the "saved" checkmark a few seconds after it appears.
   useEffect(() => {
@@ -55,7 +65,18 @@ export function EventEditForm({ event }: { event: Event }) {
           <Input type="date" name="event_date" defaultValue={event.event_date ?? ""} dir="ltr" />
         </Field>
         <Field label="טקסט הצהרת ההסכמה" required>
-          <Textarea name="consent_text" defaultValue={event.consent_text} className="min-h-[110px]" />
+          <Textarea
+            ref={consentTextRef}
+            name="consent_text"
+            defaultValue={event.consent_text}
+            className="min-h-[110px]"
+          />
+          <div className="mt-2">
+            <p className="text-xs text-pine-dark/50 mb-1.5">
+              או ייבוא אוטומטי מקובץ:
+            </p>
+            <ConsentFileUploader onTextExtracted={handleExtractedText} />
+          </div>
         </Field>
         <CheckboxRow
           id="requires_health_declaration"

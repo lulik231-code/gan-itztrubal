@@ -7,6 +7,7 @@ import { ArrowRight } from "lucide-react";
 import type { Event, SubmissionWithRelations } from "@/types";
 import { SubmissionsTable } from "./SubmissionsTable";
 import { EventEditForm } from "./EventEditForm";
+import { CopyEventLink } from "@/components/CopyEventLink";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,13 @@ export default async function EventDetailPage({
         <ArrowRight className="h-4 w-4" />
         חזרה לרשימת האירועים
       </Link>
+
+      <Card className="p-4">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <span className="text-sm font-medium text-pine-dark/70">קישור לטופס ההורים:</span>
+          <CopyEventLink eventId={event.id} />
+        </div>
+      </Card>
 
       <EventEditForm event={event} />
 
