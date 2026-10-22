@@ -107,6 +107,7 @@ export async function POST(req: NextRequest) {
       parent_id_number: form.parentIdNumber?.trim() || null,
       notes: form.notes?.trim() || null,
       health_declaration_checked: form.healthDeclarationChecked,
+      health_notes: event.requires_health_declaration ? form.healthNotes?.trim().slice(0, 1000) || null : null,
       general_consent_checked: form.generalConsentChecked,
       photo_consent_checked: form.photoConsentChecked,
       signature_data_url: form.signatureDataUrl,

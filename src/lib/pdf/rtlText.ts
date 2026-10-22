@@ -15,9 +15,9 @@ import { PDFFont, PDFPage, RGB } from "pdf-lib";
  */
 
 function mirrorWrappingParens(word: string): string {
-  if (word.startsWith("(") && word.endsWith(")")) {
-    return ")" + word.slice(1, -1) + "(";
-  }
+  // Also covers a trailing punctuation mark after the closing paren, e.g. "(רשות)."
+  const m = word.match(/^\((.*)\)([.,:;!?]*)$/);
+  if (m) return ")" + m[1] + "(" + m[2];
   return word;
 }
 
@@ -52,36 +52,48 @@ export function drawRTLLine(
 }
 
 /** Word-wraps Hebrew/RTL text within [leftX, rightX] and draws each line. Returns number of lines used. */
+/**
+ * Splits text into display lines that fit maxWidth. Explicit line breaks in
+ * the text start a new line (blank lines are kept as small gaps).
+ */
+export function wrapRTLParagraph(text: string, maxWidth: number, size: number, font: PDFFont): string[] {
+  const lines: string[] = [];
+  for (const rawPara of text.replace(/\r/g, "").split("\n")) {
+    const words = rawPara.split(" ").filter((w) => w.length > 0);
+    if (words.length === 0) {
+      lines.push("");
+      continue;
+    }
+    let current = "";
+    for (const word of words) {
+      const test = current ? `${current} ${word}` : word;
+      if (font.widthOfTextAtSize(test, size) > maxWidth && current) {
+        lines.push(current);
+        current = word;
+      } else {
+        current = test;
+      }
+    }
+    if (current) lines.push(current);
+  }
+  return lines;
+}
+
 export function drawRTLParagraph(
   page: PDFPage,
   text: string,
   opts: { rightX: number; leftX: number; y: number; lineHeight: number } & DrawTextStyle
 ): number {
   const { rightX, leftX, y, size, font, color, lineHeight } = opts;
-  const maxWidth = rightX - leftX;
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let current = "";
-
-  for (const word of words) {
-    const test = current ? `${current} ${word}` : word;
-    if (font.widthOfTextAtSize(test, size) > maxWidth && current) {
-      lines.push(current);
-      current = word;
-    } else {
-      current = test;
-    }
-  }
-  if (current) lines.push(current);
+  const lines = wrapRTLParagraph(text, rightX - leftX, size, font);
 
   lines.forEach((lineText, i) => {
-    drawRTLLine(page, lineText, { rightX, y: y - i * lineHeight, size, font, color });
+    if (lineText) drawRTLLine(page, lineText, { rightX, y: y - i * lineHeight, size, font, color });
   });
 
   return lines.length;
 }
 
-/** Measures the rendered width of an RTL line without drawing it (for layout calculations). */
 export function measureRTLLine(text: string, size: number, font: PDFFont): number {
   const words = text.split(" ");
   let total = 0;

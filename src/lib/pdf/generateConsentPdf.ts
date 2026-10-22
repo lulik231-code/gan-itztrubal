@@ -1,6 +1,7 @@
 import { PDFDocument, rgb, RGB } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
-import { drawRTLLine, drawRTLParagraph } from "./rtlText";
+import { drawRTLLine, drawRTLParagraph, wrapRTLParagraph } from "./rtlText";
+import { DEFAULT_HEALTH_DECLARATION_TEXT, HEALTH_CHECKBOX_LABEL } from "@/lib/healthDeclaration";
 import { regularFontBase64 } from "./fonts/regularFontBase64";
 import { boldFontBase64 } from "./fonts/boldFontBase64";
 import type { Event, Child, ParentFormInput } from "@/types";
@@ -92,7 +93,16 @@ export async function generateConsentPdf(params: GenerateConsentPdfParams): Prom
   pdfDoc.setTitle(`טופס הסכמה - ${child.full_name} - ${event.title}`);
   pdfDoc.setLanguage("he");
 
-  const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+  let page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+  let y = PAGE_H - 130;
+
+  // Starts a new page when the next block would run past the bottom margin.
+  const ensureSpace = (needed: number) => {
+    if (y - needed < 75) {
+      page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+      y = PAGE_H - 60;
+    }
+  };
 
   // ---------------------------------------------------------
   // Header band
@@ -105,8 +115,6 @@ export async function generateConsentPdf(params: GenerateConsentPdfParams): Prom
     rightX: RIGHT, y: PAGE_H - 70, size: 13, font, color: rgb(0.9, 0.93, 0.88),
   });
 
-  let y = PAGE_H - 130;
-
   // ---------------------------------------------------------
   // Event details
   // ---------------------------------------------------------
@@ -114,8 +122,7 @@ export async function generateConsentPdf(params: GenerateConsentPdfParams): Prom
   y -= 22;
   y -= drawRTLParagraph(page, event.title, {
     rightX: RIGHT, leftX: LEFT, y, size: 12, font, color: COLOR.pineDark, lineHeight: 16,
-  }) * 16 - 16;
-  y -= 2;
+  }) * 16 + 2;
   drawRTLLine(page, `תאריך: ${formatDateHebrew(event.event_date)}`, {
     rightX: RIGHT, y, size: 11, font, color: COLOR.pineDark,
   });
@@ -164,6 +171,28 @@ export async function generateConsentPdf(params: GenerateConsentPdfParams): Prom
   y -= consentLines * 16 + 14;
 
   // ---------------------------------------------------------
+  // Health declaration (only when the event requires it)
+  // ---------------------------------------------------------
+  if (event.requires_health_declaration) {
+    const healthText = event.health_declaration_text?.trim() || DEFAULT_HEALTH_DECLARATION_TEXT;
+    const medical = form.healthNotes?.trim() || "לא דווחו פרטים רפואיים.";
+    const textLines = wrapRTLParagraph(healthText, RIGHT - LEFT, 11, font).length;
+    const medLines = wrapRTLParagraph(medical, RIGHT - LEFT, 10.5, font).length;
+    ensureSpace(22 + textLines * 16 + 14 + 18 + medLines * 14 + 30);
+
+    drawRTLLine(page, "הצהרה בריאותית", { rightX: RIGHT, y, size: 14, font: fontBold, color: COLOR.pine });
+    y -= 22;
+    y -= drawRTLParagraph(page, healthText, {
+      rightX: RIGHT, leftX: LEFT, y, size: 11, font, color: COLOR.pineDark, lineHeight: 16,
+    }) * 16 + 12;
+    drawRTLLine(page, "פרטים רפואיים שנמסרו:", { rightX: RIGHT, y, size: 11, font: fontBold, color: COLOR.pineDark });
+    y -= 18;
+    y -= drawRTLParagraph(page, medical, {
+      rightX: RIGHT, leftX: LEFT, y, size: 10.5, font, color: COLOR.pineDark, lineHeight: 14,
+    }) * 14 + 22;
+  }
+
+  // ---------------------------------------------------------
   // Checkboxes — rendered to actually reflect what the parent checked
   // ---------------------------------------------------------
   const drawCheckbox = (checked: boolean, x: number, yPos: number) => {
@@ -189,10 +218,7 @@ export async function generateConsentPdf(params: GenerateConsentPdfParams): Prom
   };
 
   if (event.requires_health_declaration) {
-    checkboxRow(
-      form.healthDeclarationChecked,
-      "אני מאשר/ת כי קראתי את ההצהרה הבריאותית הנדרשת ומסרתי את כל המידע הרפואי הרלוונטי לגבי ילדי."
-    );
+    checkboxRow(form.healthDeclarationChecked, HEALTH_CHECKBOX_LABEL);
   }
   checkboxRow(form.generalConsentChecked, "אני מסכים/ה להשתתפות ילדי באירוע המתואר לעיל.");
   if (form.photoConsentChecked !== null) {
@@ -206,6 +232,7 @@ export async function generateConsentPdf(params: GenerateConsentPdfParams): Prom
   // ---------------------------------------------------------
   // Free-text notes
   // ---------------------------------------------------------
+  ensureSpace(80);
   drawRTLLine(page, "הערות נוספות מההורה:", { rightX: RIGHT, y, size: 11, font: fontBold, color: COLOR.pineDark });
   y -= 18;
   const notesText = form.notes?.trim() ? form.notes.trim() : "אין הערות נוספות.";
@@ -217,6 +244,7 @@ export async function generateConsentPdf(params: GenerateConsentPdfParams): Prom
   // ---------------------------------------------------------
   // Signature block — embeds the parent's hand-drawn signature image
   // ---------------------------------------------------------
+  ensureSpace(190);
   page.drawLine({ start: { x: LEFT, y }, end: { x: RIGHT, y }, thickness: 1, color: COLOR.line });
   y -= 26;
   drawRTLLine(page, "חתימת ההורה", { rightX: RIGHT, y, size: 12, font: fontBold, color: COLOR.pine });
@@ -260,10 +288,12 @@ export async function generateConsentPdf(params: GenerateConsentPdfParams): Prom
   // Footer
   // ---------------------------------------------------------
   const footerY = 45;
-  page.drawLine({ start: { x: LEFT, y: footerY + 12 }, end: { x: RIGHT, y: footerY + 12 }, thickness: 0.5, color: COLOR.line });
-  drawRTLLine(page, "מסמך זה הופק אוטומטית במערכת טפסי ההסכמה הדיגיטליים של גן אצטרובל", {
-    rightX: RIGHT, y: footerY, size: 8, font, color: COLOR.sage,
-  });
+  for (const p of pdfDoc.getPages()) {
+    p.drawLine({ start: { x: LEFT, y: footerY + 12 }, end: { x: RIGHT, y: footerY + 12 }, thickness: 0.5, color: COLOR.line });
+    drawRTLLine(p, "מסמך זה הופק אוטומטית במערכת טפסי ההסכמה הדיגיטליים של גן אצטרובל", {
+      rightX: RIGHT, y: footerY, size: 8, font, color: COLOR.sage,
+    });
+  }
 
   const bytes = await pdfDoc.save();
   return bytes;

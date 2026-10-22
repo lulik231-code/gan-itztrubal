@@ -8,6 +8,7 @@ export interface Event {
   is_active: boolean;
   consent_text: string;
   requires_health_declaration: boolean;
+  health_declaration_text: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -31,6 +32,7 @@ export interface Submission {
   parent_id_number: string | null;
   notes: string | null;
   health_declaration_checked: boolean;
+  health_notes: string | null;
   general_consent_checked: boolean;
   photo_consent_checked: boolean | null;
   signature_data_url: string | null;
@@ -52,6 +54,7 @@ export interface NewEventInput {
   event_date: string;
   consent_text: string;
   requires_health_declaration: boolean;
+  health_declaration_text: string;
 }
 
 export interface ParentFormInput {
@@ -60,6 +63,7 @@ export interface ParentFormInput {
   parentIdNumber: string;
   notes: string;
   healthDeclarationChecked: boolean;
+  healthNotes: string;
   generalConsentChecked: boolean;
   photoConsentChecked: boolean | null;
   signatureDataUrl: string; // base64 PNG from the signature canvas

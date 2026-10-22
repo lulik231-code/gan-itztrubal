@@ -18,6 +18,7 @@ export async function createEventAction(formData: FormData): Promise<EventAction
   const eventDate = formData.get("event_date") as string;
   const consentText = (formData.get("consent_text") as string)?.trim();
   const requiresHealthDeclaration = formData.get("requires_health_declaration") === "on";
+  const healthDeclarationText = (formData.get("health_declaration_text") as string)?.trim();
 
   if (!title) {
     return { error: "שם האירוע הוא שדה חובה." };
@@ -31,6 +32,7 @@ export async function createEventAction(formData: FormData): Promise<EventAction
       event_date: eventDate || null,
       consent_text: consentText || undefined,
       requires_health_declaration: requiresHealthDeclaration,
+      health_declaration_text: healthDeclarationText || null,
       created_by: user.email,
     })
     .select("id")
@@ -54,6 +56,7 @@ export async function updateEventAction(eventId: string, formData: FormData): Pr
   const eventDate = formData.get("event_date") as string;
   const consentText = (formData.get("consent_text") as string)?.trim();
   const requiresHealthDeclaration = formData.get("requires_health_declaration") === "on";
+  const healthDeclarationText = (formData.get("health_declaration_text") as string)?.trim();
   const isActive = formData.get("is_active") === "on";
 
   if (!title) {
@@ -68,6 +71,7 @@ export async function updateEventAction(eventId: string, formData: FormData): Pr
       event_date: eventDate || null,
       consent_text: consentText || undefined,
       requires_health_declaration: requiresHealthDeclaration,
+      health_declaration_text: healthDeclarationText || null,
       is_active: isActive,
     })
     .eq("id", eventId);

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { updateEventAction, deleteEventAction } from "../actions";
 import type { Event } from "@/types";
 import { Trash2, Check } from "lucide-react";
+import { DEFAULT_HEALTH_DECLARATION_TEXT } from "@/lib/healthDeclaration";
 import { ConsentFileUploader } from "@/components/ConsentFileUploader";
 
 export function EventEditForm({ event }: { event: Event }) {
@@ -86,6 +87,15 @@ export function EventEditForm({ event }: { event: Event }) {
           דרוש אישור הצהרה בריאותית נפרדת בטופס
         </CheckboxRow>
         <input type="hidden" name="requires_health_declaration" value={requiresHealth ? "on" : "off"} />
+        {requiresHealth && (
+          <Field label="נוסח ההצהרה הבריאותית">
+            <Textarea
+              name="health_declaration_text"
+              defaultValue={event.health_declaration_text ?? DEFAULT_HEALTH_DECLARATION_TEXT}
+              className="min-h-[150px]"
+            />
+          </Field>
+        )}
 
         {error && (
           <div className="rounded-xl border border-clay bg-clay/10 px-4 py-3 text-sm text-clay">

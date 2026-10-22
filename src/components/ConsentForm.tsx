@@ -7,6 +7,12 @@ import { Button } from "@/components/ui/Button";
 import { SignaturePad, SignaturePadHandle } from "@/components/SignaturePad";
 import type { Event, Child } from "@/types";
 import { Loader2 } from "lucide-react";
+import {
+  DEFAULT_HEALTH_DECLARATION_TEXT,
+  HEALTH_NOTES_LABEL,
+  HEALTH_CHECKBOX_LABEL,
+  HEALTH_NOTES_MAX_LENGTH,
+} from "@/lib/healthDeclaration";
 
 interface ConsentFormProps {
   event: Event;
@@ -30,6 +36,7 @@ export function ConsentForm({ event, child }: ConsentFormProps) {
   const [parentIdNumber, setParentIdNumber] = useState("");
   const [notes, setNotes] = useState("");
   const [healthDeclarationChecked, setHealthDeclarationChecked] = useState(false);
+  const [healthNotes, setHealthNotes] = useState("");
   const [generalConsentChecked, setGeneralConsentChecked] = useState(false);
   const [photoConsentChecked, setPhotoConsentChecked] = useState(false);
 
@@ -88,6 +95,7 @@ export function ConsentForm({ event, child }: ConsentFormProps) {
             parentIdNumber,
             notes,
             healthDeclarationChecked,
+            healthNotes,
             generalConsentChecked,
             photoConsentChecked: event.requires_health_declaration === null ? null : photoConsentChecked,
             signatureDataUrl,
@@ -147,18 +155,6 @@ export function ConsentForm({ event, child }: ConsentFormProps) {
         <p className="text-sm text-pine-dark/80 leading-relaxed mb-4">{event.consent_text}</p>
 
         <div className="flex flex-col gap-3">
-          {event.requires_health_declaration && (
-            <CheckboxRow
-              id="health-declaration"
-              checked={healthDeclarationChecked}
-              onChange={setHealthDeclarationChecked}
-              required
-              error={!!errors.healthDeclaration}
-            >
-              אני מאשר/ת כי קראתי את ההצהרה הבריאותית ומסרתי את כל המידע הרפואי הרלוונטי לגבי ילדי.
-            </CheckboxRow>
-          )}
-
           <CheckboxRow
             id="general-consent"
             checked={generalConsentChecked}
@@ -178,12 +174,42 @@ export function ConsentForm({ event, child }: ConsentFormProps) {
           </CheckboxRow>
         </div>
 
-        {(errors.healthDeclaration || errors.generalConsent) && (
+        {errors.generalConsent && (
           <p id="form-errors-anchor" className="text-sm text-clay mt-3">
             יש לאשר את כל הסעיפים המסומנים בכוכבית כדי להמשיך
           </p>
         )}
       </Card>
+
+      {event.requires_health_declaration && (
+        <Card className="p-5">
+          <h3 className="font-medium text-pine mb-3">הצהרה בריאותית</h3>
+          <p className="text-sm text-pine-dark/80 leading-relaxed mb-4 whitespace-pre-line">
+            {event.health_declaration_text?.trim() || DEFAULT_HEALTH_DECLARATION_TEXT}
+          </p>
+          <div className="flex flex-col gap-4">
+            <Field label={HEALTH_NOTES_LABEL}>
+              <Textarea
+                value={healthNotes}
+                onChange={(e) => setHealthNotes(e.target.value.slice(0, HEALTH_NOTES_MAX_LENGTH))}
+                placeholder="אם אין, אפשר להשאיר ריק"
+              />
+            </Field>
+            <CheckboxRow
+              id="health-declaration"
+              checked={healthDeclarationChecked}
+              onChange={setHealthDeclarationChecked}
+              required
+              error={!!errors.healthDeclaration}
+            >
+              {HEALTH_CHECKBOX_LABEL}
+            </CheckboxRow>
+          </div>
+          {errors.healthDeclaration && (
+            <p className="text-sm text-clay mt-3">{errors.healthDeclaration}</p>
+          )}
+        </Card>
+      )}
 
       <Card className="p-5">
         <Field label="הערות נוספות (לדוגמה: רגישויות, מידע רפואי נוסף)">
