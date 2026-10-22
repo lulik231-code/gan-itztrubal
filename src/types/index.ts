@@ -9,6 +9,7 @@ export interface Event {
   consent_text: string;
   requires_health_declaration: boolean;
   health_declaration_text: string | null;
+  what_to_bring: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;

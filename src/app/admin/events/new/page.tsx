@@ -51,6 +51,13 @@ export default function NewEventPage() {
           <Field label="תאריך האירוע">
             <Input type="date" name="event_date" dir="ltr" />
           </Field>
+          <Field label="מה להביא (יוצג להורים בחלון נפרד)">
+            <Textarea
+              name="what_to_bring"
+              placeholder={"כל שורה תוצג בשורה נפרדת, לדוגמה:\nכובע ובקבוק מים\nנעליים סגורות\nארוחת בוקר"}
+              className="min-h-[100px]"
+            />
+          </Field>
         </Card>
 
         <Card className="p-5 flex flex-col gap-4">

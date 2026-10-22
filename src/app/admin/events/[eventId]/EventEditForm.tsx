@@ -65,6 +65,14 @@ export function EventEditForm({ event }: { event: Event }) {
         <Field label="תאריך האירוע">
           <Input type="date" name="event_date" defaultValue={event.event_date ?? ""} dir="ltr" />
         </Field>
+        <Field label="מה להביא (יוצג להורים בחלון נפרד)">
+          <Textarea
+            name="what_to_bring"
+            defaultValue={event.what_to_bring ?? ""}
+            placeholder={"כל שורה תוצג בשורה נפרדת, לדוגמה:\nכובע ובקבוק מים\nנעליים סגורות\nארוחת בוקר"}
+            className="min-h-[100px]"
+          />
+        </Field>
         <Field label="טקסט הצהרת ההסכמה" required>
           <Textarea
             ref={consentTextRef}

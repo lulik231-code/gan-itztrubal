@@ -35,6 +35,15 @@ export function EventFlow({ event, childRoster }: EventFlowProps) {
         )}
       </Card>
 
+      {event.what_to_bring?.trim() && (
+        <Card className="p-5">
+          <h3 className="font-medium text-pine mb-2">מה להביא</h3>
+          <p className="text-sm text-pine-dark/80 leading-relaxed whitespace-pre-line">
+            {event.what_to_bring}
+          </p>
+        </Card>
+      )}
+
       <Card className="p-5">
         <Field label="בחירת ילד/ה" required>
           <ChildPicker childRoster={childRoster} selectedChild={selectedChild} onSelect={setSelectedChild} />
