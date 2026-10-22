@@ -88,7 +88,7 @@ export function EventEditForm({ event }: { event: Event }) {
         </CheckboxRow>
         <input type="hidden" name="requires_health_declaration" value={requiresHealth ? "on" : "off"} />
         {requiresHealth && (
-          <Field label="נוסח ההצהרה הבריאותית">
+          <Field label="סעיפי ההצהרה הבריאותית (כל שורה היא סעיף נפרד עם תיבת סימון)">
             <Textarea
               name="health_declaration_text"
               defaultValue={event.health_declaration_text ?? DEFAULT_HEALTH_DECLARATION_TEXT}

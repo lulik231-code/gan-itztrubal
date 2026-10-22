@@ -9,6 +9,14 @@ export const DEFAULT_HEALTH_DECLARATION_TEXT = [
 export const HEALTH_NOTES_LABEL =
   "רגישויות, אלרגיות, מחלות כרוניות או תרופות שהצוות צריך להכיר (רשות)";
 
-export const HEALTH_CHECKBOX_LABEL = "קראתי את ההצהרה הבריאותית ואני מאשר/ת אותה.";
+/** Each non-empty line of the declaration text is a separate clause the parent must approve. */
+export function splitHealthClauses(text: string | null | undefined): string[] {
+  const source = text?.trim() ? text : DEFAULT_HEALTH_DECLARATION_TEXT;
+  return source
+    .replace(/\r/g, "")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+}
 
 export const HEALTH_NOTES_MAX_LENGTH = 1000;

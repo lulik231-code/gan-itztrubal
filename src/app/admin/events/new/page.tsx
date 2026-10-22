@@ -82,7 +82,7 @@ export default function NewEventPage() {
           {/* mirror the controlled checkbox into a plain field the server action can read reliably */}
           <input type="hidden" name="requires_health_declaration" value={requiresHealth ? "on" : "off"} />
           {requiresHealth && (
-            <Field label="נוסח ההצהרה הבריאותית">
+            <Field label="סעיפי ההצהרה הבריאותית (כל שורה היא סעיף נפרד עם תיבת סימון)">
               <Textarea
                 name="health_declaration_text"
                 defaultValue={DEFAULT_HEALTH_DECLARATION_TEXT}

@@ -1,7 +1,7 @@
 import { PDFDocument, rgb, RGB } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { drawRTLLine, drawRTLParagraph, wrapRTLParagraph } from "./rtlText";
-import { DEFAULT_HEALTH_DECLARATION_TEXT, HEALTH_CHECKBOX_LABEL } from "@/lib/healthDeclaration";
+import { splitHealthClauses } from "@/lib/healthDeclaration";
 import { regularFontBase64 } from "./fonts/regularFontBase64";
 import { boldFontBase64 } from "./fonts/boldFontBase64";
 import type { Event, Child, ParentFormInput } from "@/types";
@@ -171,28 +171,6 @@ export async function generateConsentPdf(params: GenerateConsentPdfParams): Prom
   y -= consentLines * 16 + 14;
 
   // ---------------------------------------------------------
-  // Health declaration (only when the event requires it)
-  // ---------------------------------------------------------
-  if (event.requires_health_declaration) {
-    const healthText = event.health_declaration_text?.trim() || DEFAULT_HEALTH_DECLARATION_TEXT;
-    const medical = form.healthNotes?.trim() || "לא דווחו פרטים רפואיים.";
-    const textLines = wrapRTLParagraph(healthText, RIGHT - LEFT, 11, font).length;
-    const medLines = wrapRTLParagraph(medical, RIGHT - LEFT, 10.5, font).length;
-    ensureSpace(22 + textLines * 16 + 14 + 18 + medLines * 14 + 30);
-
-    drawRTLLine(page, "הצהרה בריאותית", { rightX: RIGHT, y, size: 14, font: fontBold, color: COLOR.pine });
-    y -= 22;
-    y -= drawRTLParagraph(page, healthText, {
-      rightX: RIGHT, leftX: LEFT, y, size: 11, font, color: COLOR.pineDark, lineHeight: 16,
-    }) * 16 + 12;
-    drawRTLLine(page, "פרטים רפואיים שנמסרו:", { rightX: RIGHT, y, size: 11, font: fontBold, color: COLOR.pineDark });
-    y -= 18;
-    y -= drawRTLParagraph(page, medical, {
-      rightX: RIGHT, leftX: LEFT, y, size: 10.5, font, color: COLOR.pineDark, lineHeight: 14,
-    }) * 14 + 22;
-  }
-
-  // ---------------------------------------------------------
   // Checkboxes — rendered to actually reflect what the parent checked
   // ---------------------------------------------------------
   const drawCheckbox = (checked: boolean, x: number, yPos: number) => {
@@ -218,7 +196,27 @@ export async function generateConsentPdf(params: GenerateConsentPdfParams): Prom
   };
 
   if (event.requires_health_declaration) {
-    checkboxRow(form.healthDeclarationChecked, HEALTH_CHECKBOX_LABEL);
+    const clauses = splitHealthClauses(event.health_declaration_text);
+    const medical = form.healthNotes?.trim() || "לא דווחו פרטים רפואיים.";
+    const medLines = wrapRTLParagraph(medical, RIGHT - LEFT, 10.5, font).length;
+    ensureSpace(22 + 40 + medLines * 14 + 40);
+
+    drawRTLLine(page, "הצהרה בריאותית", { rightX: RIGHT, y, size: 14, font: fontBold, color: COLOR.pine });
+    y -= 24;
+    clauses.forEach((clause, i) => {
+      const lines = wrapRTLParagraph(clause, RIGHT - 14 - 10 - LEFT, 10.5, font).length;
+      ensureSpace(lines * 14 + 10);
+      checkboxRow(form.healthDeclarationChecked, clause);
+      if (i === 0) {
+        ensureSpace(18 + medLines * 14 + 20);
+        drawRTLLine(page, "פרטים רפואיים שנמסרו:", { rightX: RIGHT, y, size: 11, font: fontBold, color: COLOR.pineDark });
+        y -= 18;
+        y -= drawRTLParagraph(page, medical, {
+          rightX: RIGHT, leftX: LEFT, y, size: 10.5, font, color: COLOR.pineDark, lineHeight: 14,
+        }) * 14 + 14;
+      }
+    });
+    y -= 8;
   }
   checkboxRow(form.generalConsentChecked, "אני מסכים/ה להשתתפות ילדי באירוע המתואר לעיל.");
   if (form.photoConsentChecked !== null) {

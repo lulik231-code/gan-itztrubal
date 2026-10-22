@@ -8,9 +8,8 @@ import { SignaturePad, SignaturePadHandle } from "@/components/SignaturePad";
 import type { Event, Child } from "@/types";
 import { Loader2 } from "lucide-react";
 import {
-  DEFAULT_HEALTH_DECLARATION_TEXT,
+  splitHealthClauses,
   HEALTH_NOTES_LABEL,
-  HEALTH_CHECKBOX_LABEL,
   HEALTH_NOTES_MAX_LENGTH,
 } from "@/lib/healthDeclaration";
 
@@ -35,7 +34,14 @@ export function ConsentForm({ event, child }: ConsentFormProps) {
   const [parentPhone, setParentPhone] = useState("");
   const [parentIdNumber, setParentIdNumber] = useState("");
   const [notes, setNotes] = useState("");
-  const [healthDeclarationChecked, setHealthDeclarationChecked] = useState(false);
+  const healthClauses = event.requires_health_declaration
+    ? splitHealthClauses(event.health_declaration_text)
+    : [];
+  const [healthClausesChecked, setHealthClausesChecked] = useState<boolean[]>(() =>
+    healthClauses.map(() => false)
+  );
+  const healthDeclarationChecked =
+    healthClauses.length > 0 && healthClausesChecked.every(Boolean);
   const [healthNotes, setHealthNotes] = useState("");
   const [generalConsentChecked, setGeneralConsentChecked] = useState(false);
   const [photoConsentChecked, setPhotoConsentChecked] = useState(false);
@@ -52,7 +58,7 @@ export function ConsentForm({ event, child }: ConsentFormProps) {
       newErrors.parentPhone = "מספר טלפון לא תקין";
     }
     if (event.requires_health_declaration && !healthDeclarationChecked) {
-      newErrors.healthDeclaration = "יש לאשר את ההצהרה הבריאותית כדי להמשיך";
+      newErrors.healthDeclaration = "יש לאשר כל סעיף בהצהרה הבריאותית כדי להמשיך";
     }
     if (!generalConsentChecked) {
       newErrors.generalConsent = "יש לאשר את ההסכמה הכללית כדי להמשיך";
@@ -184,26 +190,32 @@ export function ConsentForm({ event, child }: ConsentFormProps) {
       {event.requires_health_declaration && (
         <Card className="p-5">
           <h3 className="font-medium text-pine mb-3">הצהרה בריאותית</h3>
-          <p className="text-sm text-pine-dark/80 leading-relaxed mb-4 whitespace-pre-line">
-            {event.health_declaration_text?.trim() || DEFAULT_HEALTH_DECLARATION_TEXT}
-          </p>
+          <p className="text-sm text-pine-dark/60 mb-4">יש לאשר כל סעיף בנפרד.</p>
           <div className="flex flex-col gap-4">
-            <Field label={HEALTH_NOTES_LABEL}>
-              <Textarea
-                value={healthNotes}
-                onChange={(e) => setHealthNotes(e.target.value.slice(0, HEALTH_NOTES_MAX_LENGTH))}
-                placeholder="אם אין, אפשר להשאיר ריק"
-              />
-            </Field>
-            <CheckboxRow
-              id="health-declaration"
-              checked={healthDeclarationChecked}
-              onChange={setHealthDeclarationChecked}
-              required
-              error={!!errors.healthDeclaration}
-            >
-              {HEALTH_CHECKBOX_LABEL}
-            </CheckboxRow>
+            {healthClauses.map((clause, i) => (
+              <div key={i} className="flex flex-col gap-4">
+                <CheckboxRow
+                  id={`health-clause-${i}`}
+                  checked={healthClausesChecked[i] ?? false}
+                  onChange={(v) =>
+                    setHealthClausesChecked((prev) => prev.map((c, j) => (j === i ? v : c)))
+                  }
+                  required
+                  error={!!errors.healthDeclaration && !healthClausesChecked[i]}
+                >
+                  {clause}
+                </CheckboxRow>
+                {i === 0 && (
+                  <Field label={HEALTH_NOTES_LABEL}>
+                    <Textarea
+                      value={healthNotes}
+                      onChange={(e) => setHealthNotes(e.target.value.slice(0, HEALTH_NOTES_MAX_LENGTH))}
+                      placeholder="אם אין, אפשר להשאיר ריק"
+                    />
+                  </Field>
+                )}
+              </div>
+            ))}
           </div>
           {errors.healthDeclaration && (
             <p className="text-sm text-clay mt-3">{errors.healthDeclaration}</p>
