@@ -58,13 +58,14 @@ export function SubmissionsTable({ submissions }: { submissions: SubmissionWithR
 
   return (
     <div className="overflow-x-auto -mx-5 px-5">
-      <table className="w-full text-sm min-w-[600px]">
+      <table className="w-full text-sm min-w-[760px]">
         <thead>
           <tr className="border-b border-line text-pine-dark/60 text-right">
             <th className="font-medium py-2 pr-2">ילד/ה</th>
             <th className="font-medium py-2">הורה חותם/ת</th>
             <th className="font-medium py-2">טלפון</th>
             <th className="font-medium py-2">בריאותי</th>
+            <th className="font-medium py-2">פרטים רפואיים</th>
             <th className="font-medium py-2">צילום</th>
             <th className="font-medium py-2">תאריך הגשה</th>
             <th className="font-medium py-2"></th>
@@ -83,6 +84,13 @@ export function SubmissionsTable({ submissions }: { submissions: SubmissionWithR
                   <CheckCircle2 className="h-4 w-4 text-pine" />
                 ) : (
                   <XCircle className="h-4 w-4 text-sage" />
+                )}
+              </td>
+              <td className="py-3 pl-3 max-w-[220px] text-pine-dark/80 whitespace-pre-line break-words">
+                {s.health_notes ? (
+                  <span className="text-clay font-medium">{s.health_notes}</span>
+                ) : (
+                  <span className="text-pine-dark/40">—</span>
                 )}
               </td>
               <td className="py-3">
