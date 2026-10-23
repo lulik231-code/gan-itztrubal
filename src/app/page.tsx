@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/Field";
 import { PineconeMark } from "@/components/PineconeMark";
 import type { Event } from "@/types";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { CalendarDays, ChevronLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic"; // events list changes frequently; always fetch fresh
@@ -14,7 +15,19 @@ function formatDateHebrew(iso: string | null): string {
   return date.toLocaleDateString("he-IL", { day: "numeric", month: "long", year: "numeric" });
 }
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ code?: string }>;
+}) {
+  // If the sign-in provider sends the admin back to the site root with an auth
+  // code (when the callback URL isn't on the allowed redirect list), finish the
+  // login instead of silently showing the parent page.
+  const { code } = await searchParams;
+  if (code) {
+    redirect(`/auth/callback?code=${encodeURIComponent(code)}&next=/admin/dashboard`);
+  }
+
   const supabase = await createClient();
   const { data: events } = await supabase
     .from("events")
