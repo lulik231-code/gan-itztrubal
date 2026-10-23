@@ -220,7 +220,7 @@ export async function generateConsentPdf(params: GenerateConsentPdfParams): Prom
   }
   checkboxRow(form.generalConsentChecked, "אני מסכים/ה להשתתפות ילדי באירוע המתואר לעיל.");
   if (form.photoConsentChecked !== null) {
-    checkboxRow(form.photoConsentChecked, "אני מאשר/ת צילום ילדי לצרכי תיעוד ופרסום הגן (רשות).");
+    checkboxRow(form.photoConsentChecked, "אני מאשר/ת צילום ילדי לצרכי תיעוד בלבד (רשות).");
   }
 
   y -= 6;

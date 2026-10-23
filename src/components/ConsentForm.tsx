@@ -176,7 +176,7 @@ export function ConsentForm({ event, child }: ConsentFormProps) {
             checked={photoConsentChecked}
             onChange={setPhotoConsentChecked}
           >
-            אני מאשר/ת צילום ילדי לצרכי תיעוד ופרסום הגן (רשות).
+            אני מאשר/ת צילום ילדי לצרכי תיעוד בלבד (רשות).
           </CheckboxRow>
         </div>
 
