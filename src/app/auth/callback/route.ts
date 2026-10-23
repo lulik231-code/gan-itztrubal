@@ -9,13 +9,26 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/admin/dashboard";
 
+  let reason = "no_code";
+
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       return NextResponse.redirect(`${origin}${next}`);
     }
+    reason = error.message;
+
+    // The code may already have been used by a duplicate request (browsers
+    // sometimes fire the callback twice). If a valid session exists anyway,
+    // just continue to the dashboard.
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      return NextResponse.redirect(`${origin}${next}`);
+    }
   }
 
-  return NextResponse.redirect(`${origin}/admin/login?error=auth_failed`);
+  return NextResponse.redirect(
+    `${origin}/admin/login?error=auth_failed&reason=${encodeURIComponent(reason)}`
+  );
 }

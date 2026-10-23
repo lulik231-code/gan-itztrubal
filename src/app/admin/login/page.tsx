@@ -24,6 +24,7 @@ function LoginContent() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const urlError = searchParams.get("error");
+  const urlReason = searchParams.get("reason");
 
   async function handleGoogleLogin() {
     setIsLoading(true);
@@ -51,6 +52,9 @@ function LoginContent() {
         {(errorMsg || urlError) && (
           <div className="rounded-xl border border-clay bg-clay/10 px-4 py-3 text-sm text-clay mb-4">
             {errorMsg ?? "ההתחברות נכשלה. נסו שוב."}
+            {urlReason && !errorMsg && (
+              <span dir="ltr" className="block mt-1 text-xs opacity-70 break-words">{urlReason}</span>
+            )}
           </div>
         )}
 
