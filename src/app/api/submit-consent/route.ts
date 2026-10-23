@@ -9,6 +9,8 @@ interface SubmitConsentBody {
   eventId: string;
   childId: string;
   form: ParentFormInput;
+  /** Set when a parent edits an existing submission: the phone number on the original form. */
+  editVerifyPhone?: string;
 }
 
 function getAnonClient() {
@@ -26,7 +28,7 @@ function getAnonClient() {
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as SubmitConsentBody;
-    const { eventId, childId, form } = body;
+    const { eventId, childId, form, editVerifyPhone } = body;
 
     // ---- basic input validation (defense in depth alongside RLS) ----
     if (!eventId || !childId) {
@@ -69,6 +71,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "יש לאשר את ההצהרה הבריאותית." }, { status: 400 });
     }
 
+    // Fail fast on a bad edit attempt, before spending time on the PDF/upload.
+    if (editVerifyPhone) {
+      const { data: existing } = await supabase.rpc("get_submission_for_edit", {
+        p_event: eventId,
+        p_child: childId,
+        p_phone: editVerifyPhone,
+      });
+      if (!existing) {
+        return NextResponse.json(
+          { error: "לא ניתן לערוך את הטופס: העריכה נחסמה (ביום האירוע ואילך) או שמספר הטלפון אינו תואם." },
+          { status: 403 }
+        );
+      }
+    }
+
     const submittedAt = new Date();
 
     // ---- generate the stamped PDF ----
@@ -96,9 +113,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "שגיאה בשמירת הקובץ. נסו שוב." }, { status: 500 });
     }
 
-    // ---- insert the submission row ----
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+    const healthNotes = event.requires_health_declaration
+      ? form.healthNotes?.trim().slice(0, 1000) || null
+      : null;
 
+    // ---- edit an existing submission (allowed until the day of the event) ----
+    if (editVerifyPhone) {
+      const { data: updated, error: updateError } = await supabase.rpc("update_submission_for_edit", {
+        p_event: eventId,
+        p_child: childId,
+        p_verify_phone: editVerifyPhone,
+        p_parent_full_name: form.parentFullName.trim(),
+        p_parent_phone: form.parentPhone.trim(),
+        p_parent_id_number: form.parentIdNumber?.trim() || null,
+        p_notes: form.notes?.trim() || null,
+        p_health_declaration_checked: form.healthDeclarationChecked,
+        p_health_notes: healthNotes,
+        p_general_consent_checked: form.generalConsentChecked,
+        p_photo_consent_checked: form.photoConsentChecked,
+        p_signature_data_url: form.signatureDataUrl,
+        p_pdf_storage_path: storagePath,
+        p_ip: ip,
+      });
+      if (updateError) {
+        console.error("Submission update failed:", updateError);
+        return NextResponse.json({ error: "שגיאה בעדכון הטופס. נסו שוב." }, { status: 500 });
+      }
+      if (!updated) {
+        return NextResponse.json(
+          { error: "לא ניתן לערוך את הטופס: העריכה נחסמה (ביום האירוע ואילך) או שמספר הטלפון אינו תואם." },
+          { status: 403 }
+        );
+      }
+      return NextResponse.json({ success: true, edited: true });
+    }
+
+    // ---- insert the submission row ----
     const { error: insertError } = await supabase.from("submissions").insert({
       event_id: eventId,
       child_id: childId,
@@ -107,7 +158,7 @@ export async function POST(req: NextRequest) {
       parent_id_number: form.parentIdNumber?.trim() || null,
       notes: form.notes?.trim() || null,
       health_declaration_checked: form.healthDeclarationChecked,
-      health_notes: event.requires_health_declaration ? form.healthNotes?.trim().slice(0, 1000) || null : null,
+      health_notes: healthNotes,
       general_consent_checked: form.generalConsentChecked,
       photo_consent_checked: form.photoConsentChecked,
       signature_data_url: form.signatureDataUrl,

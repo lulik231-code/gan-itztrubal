@@ -103,7 +103,10 @@ export function SubmissionsTable({ submissions }: { submissions: SubmissionWithR
                 )}
               </td>
               <td className="py-3 text-pine-dark/60 whitespace-nowrap">
-                {formatDateTimeHebrew(s.submitted_at)}
+                {formatDateTimeHebrew(s.edited_at ?? s.submitted_at)}
+                {s.edited_at && (
+                  <span className="block text-xs text-amber-dark">עודכן על ידי ההורה</span>
+                )}
               </td>
               <td className="py-3">
                 <div className="flex items-center gap-3">

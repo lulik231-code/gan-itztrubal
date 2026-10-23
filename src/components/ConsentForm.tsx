@@ -13,9 +13,20 @@ import {
   HEALTH_NOTES_MAX_LENGTH,
 } from "@/lib/healthDeclaration";
 
+export interface ConsentFormInitialValues {
+  parent_full_name: string;
+  parent_phone: string;
+  parent_id_number: string | null;
+  notes: string | null;
+  health_notes: string | null;
+  photo_consent_checked: boolean | null;
+}
+
 interface ConsentFormProps {
   event: Event;
   child: Child;
+  /** Edit mode: previous answers plus the phone number that verified the parent. */
+  editing?: { initial: ConsentFormInitialValues; verifyPhone: string };
 }
 
 interface FormErrors {
@@ -26,14 +37,14 @@ interface FormErrors {
   signature?: string;
 }
 
-export function ConsentForm({ event, child }: ConsentFormProps) {
+export function ConsentForm({ event, child, editing }: ConsentFormProps) {
   const router = useRouter();
   const sigPadRef = useRef<SignaturePadHandle>(null);
 
-  const [parentFullName, setParentFullName] = useState("");
-  const [parentPhone, setParentPhone] = useState("");
-  const [parentIdNumber, setParentIdNumber] = useState("");
-  const [notes, setNotes] = useState("");
+  const [parentFullName, setParentFullName] = useState(editing?.initial.parent_full_name ?? "");
+  const [parentPhone, setParentPhone] = useState(editing?.initial.parent_phone ?? "");
+  const [parentIdNumber, setParentIdNumber] = useState(editing?.initial.parent_id_number ?? "");
+  const [notes, setNotes] = useState(editing?.initial.notes ?? "");
   const healthClauses = event.requires_health_declaration
     ? splitHealthClauses(event.health_declaration_text)
     : [];
@@ -42,9 +53,9 @@ export function ConsentForm({ event, child }: ConsentFormProps) {
   );
   const healthDeclarationChecked =
     healthClauses.length > 0 && healthClausesChecked.every(Boolean);
-  const [healthNotes, setHealthNotes] = useState("");
+  const [healthNotes, setHealthNotes] = useState(editing?.initial.health_notes ?? "");
   const [generalConsentChecked, setGeneralConsentChecked] = useState(false);
-  const [photoConsentChecked, setPhotoConsentChecked] = useState(false);
+  const [photoConsentChecked, setPhotoConsentChecked] = useState(editing?.initial.photo_consent_checked ?? false);
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -95,6 +106,7 @@ export function ConsentForm({ event, child }: ConsentFormProps) {
         body: JSON.stringify({
           eventId: event.id,
           childId: child.id,
+          editVerifyPhone: editing?.verifyPhone,
           form: {
             parentFullName,
             parentPhone,
@@ -117,7 +129,9 @@ export function ConsentForm({ event, child }: ConsentFormProps) {
         return;
       }
 
-      router.push(`/event/${event.id}/success?child=${encodeURIComponent(child.full_name)}`);
+      router.push(
+        `/event/${event.id}/success?child=${encodeURIComponent(child.full_name)}${editing ? "&edited=1" : ""}`
+      );
     } catch {
       setSubmitError("שגיאת תקשורת. בדקו את החיבור לאינטרנט ונסו שוב.");
       setIsSubmitting(false);
@@ -126,6 +140,11 @@ export function ConsentForm({ event, child }: ConsentFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      {editing && (
+        <div className="rounded-xl border border-amber bg-amber/10 px-4 py-3 text-sm text-pine-dark">
+          אתם עורכים טופס שהוגש בעבר. יש לאשר את הסעיפים ולחתום מחדש, והמסמך החתום יוחלף בגרסה המעודכנת.
+        </div>
+      )}
       <Card className="p-5">
         <h3 className="font-medium text-pine mb-4">פרטי ההורה החותם/ת</h3>
         <div className="flex flex-col gap-4">
@@ -250,7 +269,11 @@ export function ConsentForm({ event, child }: ConsentFormProps) {
 
       <Button type="submit" size="lg" disabled={isSubmitting} className="flex items-center justify-center gap-2">
         {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-        {isSubmitting ? "שולח ויוצר מסמך..." : "אישור וחתימה על הטופס"}
+        {isSubmitting
+          ? "שולח ויוצר מסמך..."
+          : editing
+            ? "עדכון הטופס וחתימה מחדש"
+            : "אישור וחתימה על הטופס"}
       </Button>
     </form>
   );

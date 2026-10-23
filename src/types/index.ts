@@ -40,6 +40,7 @@ export interface Submission {
   pdf_storage_path: string;
   pdf_public_url: string | null;
   submitted_at: string;
+  edited_at: string | null;
   ip_address: string | null;
 }
 

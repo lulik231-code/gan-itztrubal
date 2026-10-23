@@ -7,9 +7,9 @@ import Link from "next/link";
 export default async function SuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ child?: string }>;
+  searchParams: Promise<{ child?: string; edited?: string }>;
 }) {
-  const { child } = await searchParams;
+  const { child, edited } = await searchParams;
 
   return (
     <div className="flex-1 flex flex-col">
@@ -17,10 +17,12 @@ export default async function SuccessPage({
       <main className="flex-1 max-w-2xl w-full mx-auto px-5 py-10 flex items-center justify-center">
         <Card className="p-8 text-center w-full">
           <PineconeMark className="h-14 w-14 mx-auto text-pine mb-4" />
-          <h2 className="text-2xl font-display text-pine mb-2">הטופס נשלח בהצלחה!</h2>
+          <h2 className="text-2xl font-display text-pine mb-2">
+            {edited ? "הטופס עודכן בהצלחה!" : "הטופס נשלח בהצלחה!"}
+          </h2>
           <p className="text-pine-dark/80 leading-relaxed">
             {child ? `ההסכמה עבור ${child} נקלטה ` : "ההסכמה נקלטה "}
-            במערכת. תודה שמילאתם את הטופס.
+            במערכת. {edited ? "תודה שעדכנתם את הטופס." : "תודה שמילאתם את הטופס."}
           </p>
           <p className="text-sm text-pine-dark/60 mt-3">
             המסמך החתום נשמר במערכת הגן ואין צורך לשלוח אותו בנפרד.
