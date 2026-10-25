@@ -8,6 +8,7 @@ import type { Event, SubmissionWithRelations } from "@/types";
 import { SubmissionsTable } from "./SubmissionsTable";
 import { EventEditForm } from "./EventEditForm";
 import { CopyEventLink } from "@/components/CopyEventLink";
+import { EventBulkDownload } from "./EventBulkDownload";
 
 export const dynamic = "force-dynamic";
 
@@ -63,9 +64,10 @@ export default async function EventDetailPage({
       <EventEditForm event={event} />
 
       <Card className="p-5">
-        <h3 className="font-medium text-pine mb-4">
-          הגשות ({submissions?.length ?? 0})
-        </h3>
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
+          <h3 className="font-medium text-pine">הגשות ({submissions?.length ?? 0})</h3>
+          {(submissions?.length ?? 0) > 0 && <EventBulkDownload eventId={event.id} />}
+        </div>
         <SubmissionsTable
           submissions={submissions ?? []}
           eventDate={event.event_date}

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { CopyLink } from "@/components/CopyEventLink";
 import { EarlyReleaseTable } from "./EarlyReleaseTable";
 import { TeachersManager } from "./TeachersManager";
+import { MonthDownload } from "./MonthDownload";
 import { todayInIsrael, formatReleaseDate } from "@/lib/earlyRelease";
 import type { EarlyRelease, KindergartenTeacher } from "@/types";
 import Link from "next/link";
@@ -50,6 +51,14 @@ export default async function AdminEarlyReleasePage({
           <span className="text-sm font-medium text-pine-dark/70">קישור לטופס ההורים:</span>
           <CopyLink path="/early-release" />
         </div>
+      </Card>
+
+      <Card className="p-5">
+        <h3 className="font-medium text-pine mb-1">הורדת חודש שלם</h3>
+        <p className="text-sm text-pine-dark/60 mb-4">
+          קובץ ZIP עם כל אישורי החודש כ-PDF, וגם רשימה מסודרת שנפתחת באקסל.
+        </p>
+        <MonthDownload defaultMonth={today.slice(0, 7)} />
       </Card>
 
       <Card className="p-5">
