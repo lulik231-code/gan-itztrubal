@@ -36,13 +36,23 @@ export function SubmissionsTable({ submissions }: { submissions: SubmissionWithR
 
   async function handleDownload(submission: SubmissionWithRelations) {
     setDownloadingId(submission.id);
+    // Open the tab synchronously, inside the click, so mobile pop-up blockers
+    // allow it; the signed link is filled in once the server returns it.
+    const win = window.open("", "_blank");
     try {
       const url = await getSignedPdfUrl(submission.pdf_storage_path);
-      if (url) {
-        window.open(url, "_blank");
-      } else {
+      if (!url) {
+        win?.close();
         alert("שגיאה בהורדת הקובץ. נסו שוב.");
+      } else if (win) {
+        win.location.href = url;
+      } else {
+        // Pop-ups blocked entirely: open the PDF in this tab instead.
+        window.location.href = url;
       }
+    } catch {
+      win?.close();
+      alert("שגיאה בהורדת הקובץ. נסו שוב.");
     } finally {
       setDownloadingId(null);
     }
