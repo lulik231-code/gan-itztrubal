@@ -70,3 +70,22 @@ export interface ParentFormInput {
   photoConsentChecked: boolean | null;
   signatureDataUrl: string; // base64 PNG from the signature canvas
 }
+
+export interface EarlyRelease {
+  id: string;
+  child_id: string;
+  release_date: string; // YYYY-MM-DD
+  release_time: string; // HH:MM
+  teacher_name: string | null;
+  parent_full_name: string;
+  parent_id_number: string;
+  parent_phone: string;
+  child_id_number: string;
+  pickup_name: string;
+  pickup_id_number: string;
+  pickup_relation: string;
+  pickup_phone: string;
+  pdf_storage_path: string;
+  submitted_at: string;
+  children?: Pick<Child, 'id' | 'full_name' | 'class_name'> | null;
+}

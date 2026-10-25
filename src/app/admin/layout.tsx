@@ -1,7 +1,7 @@
 import { PineconeMark } from "@/components/PineconeMark";
 import Link from "next/link";
 import { signOutAction } from "./actions";
-import { LogOut, CalendarDays, Users } from "lucide-react";
+import { LogOut, CalendarDays, Users, DoorOpen } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -22,6 +22,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               <CalendarDays className="h-4 w-4" />
               <span className="hidden sm:inline">אירועים</span>
+            </Link>
+            <Link
+              href="/admin/early-release"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm hover:bg-white/10 transition-colors"
+            >
+              <DoorOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">שחרורים</span>
             </Link>
             <Link
               href="/admin/children"

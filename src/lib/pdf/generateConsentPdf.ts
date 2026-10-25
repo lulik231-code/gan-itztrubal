@@ -10,12 +10,12 @@ import type { Event, Child, ParentFormInput } from "@/types";
 // Brand colors (mirrors the CSS tokens in globals.css) expressed as
 // pdf-lib RGB (0–1 range) since pdf-lib doesn't read hex strings.
 // ============================================================
-const hex = (h: string): RGB => {
+export const hex = (h: string): RGB => {
   const n = parseInt(h.replace("#", ""), 16);
   return rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
 };
 
-const COLOR = {
+export const COLOR = {
   pine: hex("#2F5233"),
   pineDark: hex("#1C2B1E"),
   amber: hex("#D98A3D"),
@@ -26,16 +26,16 @@ const COLOR = {
   clay: hex("#C4694F"),
 };
 
-const PAGE_W = 595.28; // A4 portrait, points
-const PAGE_H = 841.89;
-const MARGIN = 50;
+export const PAGE_W = 595.28; // A4 portrait, points
+export const PAGE_H = 841.89;
+export const MARGIN = 50;
 const RIGHT = PAGE_W - MARGIN;
 const LEFT = MARGIN;
 
 let fontRegularBytesCache: Uint8Array | null = null;
 let fontBoldBytesCache: Uint8Array | null = null;
 
-function loadFontBytes(): { regular: Uint8Array; bold: Uint8Array } {
+export function loadFontBytes(): { regular: Uint8Array; bold: Uint8Array } {
   if (fontRegularBytesCache && fontBoldBytesCache) {
     return { regular: fontRegularBytesCache, bold: fontBoldBytesCache };
   }
@@ -55,13 +55,16 @@ function formatDateHebrew(iso: string | null): string {
   return `${d}.${m}.${y}`;
 }
 
-function formatDateTimeHebrew(date: Date): string {
-  const d = String(date.getDate()).padStart(2, "0");
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const y = date.getFullYear();
-  const hh = String(date.getHours()).padStart(2, "0");
-  const mm = String(date.getMinutes()).padStart(2, "0");
-  return `${d}.${m}.${y}, ${hh}:${mm}`;
+export function formatDateTimeHebrew(date: Date): string {
+  // Always Israel time: serverless runtimes run in UTC, which would print the
+  // signing time 2-3 hours early.
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Jerusalem",
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(date);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${get("day")}.${get("month")}.${get("year")}, ${get("hour")}:${get("minute")}`;
 }
 
 interface GenerateConsentPdfParams {

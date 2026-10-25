@@ -4,12 +4,16 @@ import { useState } from "react";
 import { Link2, Check } from "lucide-react";
 
 export function CopyEventLink({ eventId }: { eventId: string }) {
+  return <CopyLink path={`/event/${eventId}`} />;
+}
+
+export function CopyLink({ path }: { path: string }) {
   const [copied, setCopied] = useState(false);
 
   const url =
     typeof window !== "undefined"
-      ? `${window.location.origin}/event/${eventId}`
-      : `/event/${eventId}`;
+      ? `${window.location.origin}${path}`
+      : path;
 
   async function handleCopy() {
     try {
@@ -35,7 +39,7 @@ export function CopyEventLink({ eventId }: { eventId: string }) {
         dir="ltr"
         className="text-xs text-pine-dark/50 bg-sage-light/60 rounded-lg px-3 py-1.5 font-mono truncate max-w-[280px]"
       >
-        {`/event/${eventId}`}
+        {path}
       </span>
       <button
         onClick={handleCopy}
