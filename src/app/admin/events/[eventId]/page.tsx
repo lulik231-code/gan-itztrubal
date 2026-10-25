@@ -37,6 +37,12 @@ export default async function EventDetailPage({
     .order("submitted_at", { ascending: false })
     .returns<SubmissionWithRelations[]>();
 
+  const { data: accessRows } = await supabase
+    .from("event_edit_access")
+    .select("child_id")
+    .eq("event_id", eventId);
+  const openChildIds = (accessRows ?? []).map((r) => r.child_id as string);
+
   return (
     <div className="flex flex-col gap-6">
       <Link
@@ -60,7 +66,11 @@ export default async function EventDetailPage({
         <h3 className="font-medium text-pine mb-4">
           הגשות ({submissions?.length ?? 0})
         </h3>
-        <SubmissionsTable submissions={submissions ?? []} />
+        <SubmissionsTable
+          submissions={submissions ?? []}
+          eventDate={event.event_date}
+          openChildIds={openChildIds}
+        />
       </Card>
     </div>
   );

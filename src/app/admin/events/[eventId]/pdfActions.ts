@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { revalidatePath } from "next/cache";
 
 /**
  * The consent-pdfs bucket is private (RLS-gated). To let an admin download
@@ -57,5 +58,31 @@ export async function deleteSubmissionAction(
     return { success: false, error: dbError.message };
   }
 
+  return { success: true };
+}
+
+/**
+ * Opens (or closes) editing for one specific child on the day of the event.
+ * Only this child's parent gets access; everyone else stays locked.
+ */
+export async function setEditAccessAction(
+  eventId: string,
+  childId: string,
+  enabled: boolean
+): Promise<{ success: boolean; error?: string }> {
+  const { user } = await requireAdmin();
+  const supabase = await createClient();
+
+  const { error } = enabled
+    ? await supabase
+        .from("event_edit_access")
+        .upsert({ event_id: eventId, child_id: childId, granted_by: user.email }, { onConflict: "event_id,child_id" })
+    : await supabase.from("event_edit_access").delete().eq("event_id", eventId).eq("child_id", childId);
+
+  if (error) {
+    console.error("setEditAccessAction error:", error);
+    return { success: false, error: error.message };
+  }
+  revalidatePath(`/admin/events/${eventId}`);
   return { success: true };
 }

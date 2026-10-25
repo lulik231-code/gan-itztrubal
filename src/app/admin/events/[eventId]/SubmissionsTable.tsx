@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Download, Loader2, CheckCircle2, XCircle, Trash2 } from "lucide-react";
-import { getSignedPdfUrl, deleteSubmissionAction } from "./pdfActions";
+import { Download, Loader2, CheckCircle2, XCircle, Trash2, Unlock, Lock } from "lucide-react";
+import { getSignedPdfUrl, deleteSubmissionAction, setEditAccessAction } from "./pdfActions";
 import type { SubmissionWithRelations } from "@/types";
 
 function formatDateTimeHebrew(iso: string): string {
@@ -12,7 +12,35 @@ function formatDateTimeHebrew(iso: string): string {
   });
 }
 
-export function SubmissionsTable({ submissions }: { submissions: SubmissionWithRelations[] }) {
+function todayInIsrael(): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem" }).format(new Date());
+}
+
+export function SubmissionsTable({
+  submissions,
+  eventDate,
+  openChildIds,
+}: {
+  submissions: SubmissionWithRelations[];
+  eventDate: string | null;
+  openChildIds: string[];
+}) {
+  const [accessBusyId, setAccessBusyId] = useState<string | null>(null);
+  // Editing is locked for parents from the event day onward.
+  const lockedByDate = !!eventDate && todayInIsrael() >= eventDate;
+
+  async function handleToggleAccess(submission: SubmissionWithRelations, enable: boolean) {
+    if (!submission.children?.id) return;
+    setAccessBusyId(submission.id);
+    try {
+      const result = await setEditAccessAction(submission.event_id, submission.children.id, enable);
+      if (!result.success) alert("שגיאה בעדכון ההרשאה. נסי שוב.");
+      else router.refresh();
+    } finally {
+      setAccessBusyId(null);
+    }
+  }
+
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const router = useRouter();
@@ -132,6 +160,32 @@ export function SubmissionsTable({ submissions }: { submissions: SubmissionWithR
                     )}
                     PDF
                   </button>
+                  {(() => {
+                    const childId = s.children?.id;
+                    if (!childId) return null;
+                    const isOpen = openChildIds.includes(childId);
+                    // Before the event day parents can already edit; the button matters from then on.
+                    if (!lockedByDate && !isOpen) return null;
+                    return (
+                      <button
+                        onClick={() => handleToggleAccess(s, !isOpen)}
+                        disabled={accessBusyId === s.id}
+                        title={isOpen ? "סגירת עריכה להורה" : "פתיחת עריכה להורה"}
+                        className={`flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
+                          isOpen ? "text-amber-dark hover:text-pine" : "text-pine hover:text-amber-dark"
+                        }`}
+                      >
+                        {accessBusyId === s.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : isOpen ? (
+                          <Unlock className="h-4 w-4" />
+                        ) : (
+                          <Lock className="h-4 w-4" />
+                        )}
+                        {isOpen ? "עריכה פתוחה" : "פתיחת עריכה"}
+                      </button>
+                    );
+                  })()}
                   <button
                     onClick={() => handleDelete(s)}
                     disabled={deletingId === s.id || downloadingId === s.id}
