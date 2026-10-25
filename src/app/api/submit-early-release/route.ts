@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     };
 
     if (
-      !data.parentFullName || !data.parentPhone || !data.pickupName ||
+      !data.teacherName || !data.parentFullName || !data.parentPhone || !data.pickupName ||
       !data.pickupRelation || !data.pickupPhone
     ) {
       return NextResponse.json({ error: "יש למלא את כל השדות." }, { status: 400 });

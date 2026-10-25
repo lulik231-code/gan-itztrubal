@@ -17,7 +17,7 @@ import {
 import type { Child } from "@/types";
 
 type Errors = Partial<Record<
-  | "child" | "parentFullName" | "parentIdNumber" | "parentPhone" | "childIdNumber" | "releaseTime"
+  | "child" | "teacherName" | "parentFullName" | "parentIdNumber" | "parentPhone" | "childIdNumber" | "releaseTime"
   | "pickupName" | "pickupIdNumber" | "pickupRelation" | "pickupPhone" | "clauses" | "signature",
   string
 >>;
@@ -53,6 +53,7 @@ export function EarlyReleaseForm({ childRoster }: { childRoster: Child[] }) {
     const e: Errors = {};
     const phoneOk = (p: string) => /^0\d{8,9}$/.test(stripSeparators(p));
     if (!child) e.child = "יש לבחור ילד/ה";
+    if (!teacherName.trim()) e.teacherName = "שדה חובה";
     if (!parentFullName.trim()) e.parentFullName = "שדה חובה";
     if (!ID_NUMBER_PATTERN.test(stripSeparators(parentIdNumber))) e.parentIdNumber = "מספר תעודת זהות לא תקין";
     if (!parentPhone.trim()) e.parentPhone = "שדה חובה";
@@ -153,9 +154,15 @@ export function EarlyReleaseForm({ childRoster }: { childRoster: Child[] }) {
             />
           </Field>
         </div>
-        <Field label="אל: גננת הגן וצוות הגן (שם הגננת, רשות)">
-          <Input value={teacherName} onChange={(e) => setTeacherName(e.target.value)} />
-        </Field>
+        <div id={errAnchor("teacherName")}>
+          <Field label="אל: גננת הגן וצוות הגן (שם הגננת)" required error={errors.teacherName}>
+            <Input
+              value={teacherName}
+              onChange={(e) => setTeacherName(e.target.value)}
+              placeholder="שם הגננת שנמצאת בגן היום"
+            />
+          </Field>
+        </div>
       </Card>
 
       <Card className="p-5">

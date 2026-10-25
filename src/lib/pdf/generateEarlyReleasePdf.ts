@@ -74,9 +74,7 @@ export async function generateEarlyReleasePdf({ child, form, releaseDate, submit
   };
 
   // To / from
-  const to = form.teacherName.trim()
-    ? `אל: גננת הגן וצוות הגן: ${form.teacherName.trim()}`
-    : "אל: גננת הגן וצוות הגן";
+  const to = `אל: גננת הגן וצוות הגן: ${form.teacherName.trim()}`;
   paragraph(to, 11.5, 16, 12);
 
   heading("מאת ההורה/האפוטרופוס");
