@@ -105,7 +105,6 @@ export async function generateEarlyReleasePdf({ child, form, releaseDate, submit
   heading("זהות המבוגר המאסף");
   paragraph("הילד/ה ישוחרר/ת אך ורק לידי:", 11, 16, 8);
   detailRow("שם מלא:", form.pickupName);
-  detailRow("ת.ז.:", form.pickupIdNumber);
   detailRow("קשר משפחתי/קרבה:", form.pickupRelation);
   detailRow("טלפון:", form.pickupPhone);
   y -= 6;

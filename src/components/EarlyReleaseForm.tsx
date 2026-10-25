@@ -18,7 +18,7 @@ import type { Child } from "@/types";
 
 type Errors = Partial<Record<
   | "child" | "teacherName" | "parentFullName" | "parentIdNumber" | "parentPhone" | "childIdNumber" | "releaseTime"
-  | "pickupName" | "pickupIdNumber" | "pickupRelation" | "pickupPhone" | "clauses" | "signature",
+  | "pickupName" | "pickupRelation" | "pickupPhone" | "clauses" | "signature",
   string
 >>;
 
@@ -37,7 +37,6 @@ export function EarlyReleaseForm({ childRoster, teachers }: { childRoster: Child
   const [childIdNumber, setChildIdNumber] = useState("");
   const [releaseTime, setReleaseTime] = useState("");
   const [pickupName, setPickupName] = useState("");
-  const [pickupIdNumber, setPickupIdNumber] = useState("");
   const [pickupRelation, setPickupRelation] = useState("");
   const [pickupPhone, setPickupPhone] = useState("");
   const [clauses, setClauses] = useState<boolean[]>(() => EARLY_RELEASE_CLAUSES.map(() => false));
@@ -61,7 +60,6 @@ export function EarlyReleaseForm({ childRoster, teachers }: { childRoster: Child
     if (!ID_NUMBER_PATTERN.test(stripSeparators(childIdNumber))) e.childIdNumber = "מספר תעודת זהות לא תקין";
     if (!releaseTime) e.releaseTime = "יש לבחור שעה";
     if (!pickupName.trim()) e.pickupName = "שדה חובה";
-    if (!ID_NUMBER_PATTERN.test(stripSeparators(pickupIdNumber))) e.pickupIdNumber = "מספר תעודת זהות לא תקין";
     if (!pickupRelation.trim()) e.pickupRelation = "שדה חובה";
     if (!pickupPhone.trim()) e.pickupPhone = "שדה חובה";
     else if (!phoneOk(pickupPhone)) e.pickupPhone = "מספר טלפון לא תקין";
@@ -99,7 +97,6 @@ export function EarlyReleaseForm({ childRoster, teachers }: { childRoster: Child
             childIdNumber,
             releaseTime,
             pickupName,
-            pickupIdNumber,
             pickupRelation,
             pickupPhone,
             clausesChecked: clauses.every(Boolean),
@@ -231,16 +228,6 @@ export function EarlyReleaseForm({ childRoster, teachers }: { childRoster: Child
           <div id={errAnchor("pickupName")}>
             <Field label="שם מלא" required error={errors.pickupName}>
               <Input value={pickupName} onChange={(e) => setPickupName(e.target.value)} />
-            </Field>
-          </div>
-          <div id={errAnchor("pickupIdNumber")}>
-            <Field label="ת.ז." required error={errors.pickupIdNumber}>
-              <Input
-                inputMode="numeric"
-                value={pickupIdNumber}
-                onChange={(e) => setPickupIdNumber(e.target.value)}
-                dir="ltr"
-              />
             </Field>
           </div>
           <div id={errAnchor("pickupRelation")}>

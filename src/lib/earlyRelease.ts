@@ -18,7 +18,6 @@ export interface EarlyReleaseFormInput {
   childIdNumber: string;
   releaseTime: string; // HH:MM
   pickupName: string;
-  pickupIdNumber: string;
   pickupRelation: string;
   pickupPhone: string;
   clausesChecked: boolean;

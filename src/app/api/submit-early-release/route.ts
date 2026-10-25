@@ -34,7 +34,6 @@ export async function POST(req: NextRequest) {
       childIdNumber: digits(form.childIdNumber),
       releaseTime: clean(form.releaseTime, 5),
       pickupName: clean(form.pickupName, 100),
-      pickupIdNumber: digits(form.pickupIdNumber),
       pickupRelation: clean(form.pickupRelation, 60),
       pickupPhone: clean(form.pickupPhone, 30),
       clausesChecked: form.clausesChecked === true,
@@ -47,8 +46,7 @@ export async function POST(req: NextRequest) {
     ) {
       return NextResponse.json({ error: "יש למלא את כל השדות." }, { status: 400 });
     }
-    if (!ID_NUMBER_PATTERN.test(data.parentIdNumber) || !ID_NUMBER_PATTERN.test(data.childIdNumber) ||
-        !ID_NUMBER_PATTERN.test(data.pickupIdNumber)) {
+    if (!ID_NUMBER_PATTERN.test(data.parentIdNumber) || !ID_NUMBER_PATTERN.test(data.childIdNumber)) {
       return NextResponse.json({ error: "מספר תעודת זהות לא תקין." }, { status: 400 });
     }
     if (!TIME_PATTERN.test(data.releaseTime)) {
@@ -107,7 +105,7 @@ export async function POST(req: NextRequest) {
       parent_phone: data.parentPhone,
       child_id_number: data.childIdNumber,
       pickup_name: data.pickupName,
-      pickup_id_number: data.pickupIdNumber,
+      pickup_id_number: "", // no longer collected; column is NOT NULL
       pickup_relation: data.pickupRelation,
       pickup_phone: data.pickupPhone,
       signature_data_url: data.signatureDataUrl,
