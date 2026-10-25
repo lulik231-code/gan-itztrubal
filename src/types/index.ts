@@ -89,3 +89,9 @@ export interface EarlyRelease {
   submitted_at: string;
   children?: Pick<Child, 'id' | 'full_name' | 'class_name'> | null;
 }
+
+export interface KindergartenTeacher {
+  id: string;
+  full_name: string;
+  sort_order: number;
+}

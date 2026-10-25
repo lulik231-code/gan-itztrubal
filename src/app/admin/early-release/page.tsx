@@ -4,8 +4,9 @@ import { Card } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { CopyLink } from "@/components/CopyEventLink";
 import { EarlyReleaseTable } from "./EarlyReleaseTable";
+import { TeachersManager } from "./TeachersManager";
 import { todayInIsrael, formatReleaseDate } from "@/lib/earlyRelease";
-import type { EarlyRelease } from "@/types";
+import type { EarlyRelease, KindergartenTeacher } from "@/types";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,13 @@ export default async function AdminEarlyReleasePage({
     .eq("release_date", date)
     .order("release_time", { ascending: true })
     .returns<EarlyRelease[]>();
+
+  const { data: teachers } = await supabase
+    .from("kindergarten_teachers")
+    .select("id, full_name, sort_order")
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true })
+    .returns<KindergartenTeacher[]>();
 
   return (
     <div className="flex flex-col gap-6">
@@ -68,6 +76,15 @@ export default async function AdminEarlyReleasePage({
           {date === today ? "היום" : formatReleaseDate(date)} ({releases?.length ?? 0})
         </h3>
         <EarlyReleaseTable releases={releases ?? []} />
+      </Card>
+
+      <Card className="p-5">
+        <h3 className="font-medium text-pine mb-1">גננות בטופס</h3>
+        <p className="text-sm text-pine-dark/60 mb-4">
+          השמות שההורים בוחרים מהם בטופס. אפשר לשנות שם (למשל כשהגננת המשלימה מוחלפת), להוסיף או להסיר. טפסים
+          שכבר מולאו שומרים את השם שנבחר בזמנו.
+        </p>
+        <TeachersManager teachers={teachers ?? []} />
       </Card>
     </div>
   );

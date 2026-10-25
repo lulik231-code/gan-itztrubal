@@ -24,7 +24,7 @@ type Errors = Partial<Record<
 
 const stripSeparators = (v: string) => v.replace(/[\s-]/g, "");
 
-export function EarlyReleaseForm({ childRoster }: { childRoster: Child[] }) {
+export function EarlyReleaseForm({ childRoster, teachers }: { childRoster: Child[]; teachers: string[] }) {
   const router = useRouter();
   const sigPadRef = useRef<SignaturePadHandle>(null);
 
@@ -155,12 +155,25 @@ export function EarlyReleaseForm({ childRoster }: { childRoster: Child[] }) {
           </Field>
         </div>
         <div id={errAnchor("teacherName")}>
-          <Field label="אל: גננת הגן וצוות הגן (שם הגננת)" required error={errors.teacherName}>
-            <Input
-              value={teacherName}
-              onChange={(e) => setTeacherName(e.target.value)}
-              placeholder="שם הגננת שנמצאת בגן היום"
-            />
+          <Field label="אל: גננת הגן וצוות הגן" required error={errors.teacherName}>
+            {teachers.length > 0 ? (
+              <select
+                value={teacherName}
+                onChange={(e) => setTeacherName(e.target.value)}
+                className="w-full rounded-lg border border-line bg-card px-4 py-2.5 text-pine-dark focus:border-amber focus:outline-none"
+              >
+                <option value="">בחרו את הגננת שנמצאת בגן היום</option>
+                {teachers.map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+            ) : (
+              <Input
+                value={teacherName}
+                onChange={(e) => setTeacherName(e.target.value)}
+                placeholder="שם הגננת שנמצאת בגן היום"
+              />
+            )}
           </Field>
         </div>
       </Card>

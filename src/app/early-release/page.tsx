@@ -3,7 +3,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { EarlyReleaseForm } from "@/components/EarlyReleaseForm";
 import { Card } from "@/components/ui/Field";
 import { PineconeMark } from "@/components/PineconeMark";
-import type { Child } from "@/types";
+import type { Child, KindergartenTeacher } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +18,14 @@ export default async function EarlyReleasePage() {
     .order("full_name", { ascending: true })
     .returns<Child[]>();
 
+  // If the teachers table is missing or empty the form falls back to a free-text name.
+  const { data: teachers } = await supabase
+    .from("kindergarten_teachers")
+    .select("id, full_name, sort_order")
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true })
+    .returns<KindergartenTeacher[]>();
+
   return (
     <div className="flex-1 flex flex-col">
       <SiteHeader />
@@ -28,7 +36,7 @@ export default async function EarlyReleasePage() {
             <p className="text-pine-dark/70">רשימת הילדים עדיין לא הוזנה למערכת. פנו לצוות הגן.</p>
           </Card>
         ) : (
-          <EarlyReleaseForm childRoster={children} />
+          <EarlyReleaseForm childRoster={children} teachers={(teachers ?? []).map((t) => t.full_name)} />
         )}
       </main>
     </div>

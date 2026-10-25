@@ -66,6 +66,12 @@ export async function POST(req: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
+    // The teacher must be one of the names in the admin-managed list (when a list exists).
+    const { data: teachers } = await supabase.from("kindergarten_teachers").select("full_name");
+    if (teachers && teachers.length > 0 && !teachers.some((t) => t.full_name === data.teacherName)) {
+      return NextResponse.json({ error: "יש לבחור גננת מהרשימה." }, { status: 400 });
+    }
+
     const { data: child } = await supabase
       .from("children")
       .select("*")
