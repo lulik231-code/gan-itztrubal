@@ -90,6 +90,24 @@ export interface EarlyRelease {
   children?: Pick<Child, 'id' | 'full_name' | 'class_name'> | null;
 }
 
+export interface ReleaseRequest {
+  id: string;
+  child_id: string;
+  request_date: string; // YYYY-MM-DD
+  from_time: string;
+  to_time: string;
+  teacher_name: string;
+  kindergarten_name: string;
+  parent_full_name: string;
+  parent_relation: string;
+  pickup_name: string;
+  pickup_phone: string;
+  reason: string;
+  pdf_storage_path: string;
+  submitted_at: string;
+  children?: Pick<Child, 'id' | 'full_name' | 'class_name'> | null;
+}
+
 export interface KindergartenTeacher {
   id: string;
   full_name: string;
