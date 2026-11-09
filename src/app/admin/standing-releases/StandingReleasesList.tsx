@@ -6,6 +6,7 @@ import { Download, FileText, Loader2, Paperclip, Trash2, Upload, CheckCircle2, C
 import { getSignedPdfUrl } from "../events/[eventId]/pdfActions";
 import { deleteStandingReleaseAction, reopenStandingReleaseAction } from "./actions";
 import { formatReleaseDate } from "@/lib/earlyRelease";
+import { releaseTypeLabel, scheduleShort } from "@/lib/standingRelease";
 import type { StandingRelease } from "@/types";
 
 function formatDate(iso: string): string {
@@ -102,7 +103,11 @@ export function StandingReleasesList({ items }: { items: StandingRelease[] }) {
                 )}
               </p>
               <p className="text-sm text-pine-dark/70 mt-0.5">
-                יציאה בשעה <span dir="ltr">{r.release_time}</span>, החל מ-{formatReleaseDate(r.start_date)}
+                {releaseTypeLabel(r.release_type)}
+                {r.reason_text ? `: ${r.reason_text}` : ""}
+              </p>
+              <p className="text-sm text-pine-dark/70 mt-0.5">
+                ימים ושעות: <span dir="ltr">{scheduleShort(r.schedule ?? [])}</span>, החל מ-{formatReleaseDate(r.start_date)}
               </p>
               <p className="text-xs text-pine-dark/50 mt-0.5">
                 {r.parent1_name}

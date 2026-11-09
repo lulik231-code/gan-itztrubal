@@ -9,6 +9,7 @@ import {
   STANDING_SUBJECT,
   STANDING_RESPONSIBILITY,
   standingIntroLines,
+  releaseTypeLabel,
   type StandingReleaseInput,
 } from "@/lib/standingRelease";
 import type { Child } from "@/types";
@@ -66,9 +67,14 @@ export async function generateStandingReleasePdf(params: {
   drawRTLLine(page, STANDING_SUBJECT, { rightX: RIGHT, y, size: SIZE, font: fontBold, color: BLACK });
   y -= 36;
 
-  const [a1, a2] = standingIntroLines(child.full_name, form.releaseTime, formatReleaseDate(form.startDate));
+  const [a1, a2] = standingIntroLines(child.full_name, form.schedule, formatReleaseDate(form.startDate));
   y -= paragraph(a1, y) + 4;
   y -= paragraph(a2, y) + 8;
+  const typeLine =
+    form.releaseType === "other" && form.reasonText
+      ? `סוג השחרור: ${releaseTypeLabel(form.releaseType)}. סיבה: ${form.reasonText}`
+      : `סוג השחרור: ${releaseTypeLabel(form.releaseType)}`;
+  y -= paragraph(typeLine, y) + 8;
   y -= paragraph(STANDING_RESPONSIBILITY, y) + 14;
 
   // Notes: first block holds the parents' remarks, second block is left empty as on the printed form.

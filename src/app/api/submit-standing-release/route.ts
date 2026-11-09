@@ -2,13 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
 import { generateStandingReleasePdf, buildPackagePdf } from "@/lib/pdf/generateStandingReleasePdf";
-import { TIME_PATTERN, todayInIsrael } from "@/lib/earlyRelease";
+import { todayInIsrael } from "@/lib/earlyRelease";
 import {
   ALLOWED_ATTACHMENT_TYPES,
   MAX_ATTACHMENTS,
   MAX_FILE_BYTES,
   MAX_TOTAL_BYTES,
   NOTES_MAX_LENGTH,
+  REASON_MAX_LENGTH,
+  RELEASE_TYPES,
+  validateSchedule,
+  scheduleShort,
+  type ReleaseType,
+  type ScheduleEntry,
   type StandingReleaseInput,
   type StoredAttachment,
 } from "@/lib/standingRelease";
@@ -36,7 +42,11 @@ export async function POST(req: NextRequest) {
 
     const data: StandingReleaseInput = {
       kindergartenName: clean(raw.kindergartenName, 60),
-      releaseTime: clean(raw.releaseTime, 5),
+      releaseType: (RELEASE_TYPES.some((t) => t.value === raw.releaseType) ? raw.releaseType : "other") as ReleaseType,
+      reasonText: clean(raw.reasonText, REASON_MAX_LENGTH),
+      schedule: (Array.isArray(raw.schedule) ? raw.schedule : []).slice(0, 6).map(
+        (e): ScheduleEntry => ({ day: Number(e?.day), time: clean(e?.time, 5) })
+      ),
       startDate: clean(raw.startDate, 10),
       notes: clean(raw.notes, NOTES_MAX_LENGTH),
       parent1Name: clean(raw.parent1Name, 100),
@@ -48,9 +58,14 @@ export async function POST(req: NextRequest) {
     if (!data.kindergartenName || !data.parent1Name) {
       return NextResponse.json({ error: "יש למלא את כל שדות החובה." }, { status: 400 });
     }
-    if (!TIME_PATTERN.test(data.releaseTime)) {
-      return NextResponse.json({ error: "שעת היציאה לא תקינה." }, { status: 400 });
+    const scheduleError = validateSchedule(data.releaseType, data.schedule);
+    if (scheduleError) {
+      return NextResponse.json({ error: scheduleError }, { status: 400 });
     }
+    if (data.releaseType === "other" && !data.reasonText) {
+      return NextResponse.json({ error: "יש לכתוב את סיבת השחרור." }, { status: 400 });
+    }
+    if (data.releaseType !== "other") data.reasonText = "";
     const today = todayInIsrael();
     const limit = `${Number(today.slice(0, 4)) + 1}${today.slice(4)}`;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(data.startDate) || data.startDate < today || data.startDate > limit) {
@@ -141,7 +156,10 @@ export async function POST(req: NextRequest) {
       id,
       child_id: childId,
       kindergarten_name: data.kindergartenName,
-      release_time: data.releaseTime,
+      release_type: data.releaseType,
+      reason_text: data.reasonText || null,
+      schedule: data.schedule,
+      release_time: scheduleShort(data.schedule),
       start_date: data.startDate,
       notes: data.notes || null,
       parent1_name: data.parent1Name,

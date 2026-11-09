@@ -5,9 +5,9 @@ import { PineconeMark } from "@/components/PineconeMark";
 export default async function StandingReleaseSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ child?: string; date?: string; time?: string }>;
+  searchParams: Promise<{ child?: string; date?: string }>;
 }) {
-  const { child, date, time } = await searchParams;
+  const { child, date } = await searchParams;
   return (
     <div className="flex-1 flex flex-col">
       <SiteHeader />
@@ -17,7 +17,6 @@ export default async function StandingReleaseSuccessPage({
           <h2 className="text-2xl font-display text-pine mb-2">הטופס נשלח בהצלחה!</h2>
           <p className="text-pine-dark/80 leading-relaxed">
             {child ? `הבקשה לשחרור קבוע של ${child}` : "הבקשה לשחרור קבוע"}
-            {time ? ` בשעה ${time}` : ""}
             {date ? `, החל מתאריך ${date},` : ""} נקלטה במערכת.
           </p>
           <p className="text-sm text-pine-dark/60 mt-3">

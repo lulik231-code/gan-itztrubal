@@ -112,7 +112,9 @@ export interface StandingRelease {
   id: string;
   child_id: string;
   kindergarten_name: string;
-  release_time: string;
+  release_type: 'daycare' | 'adaptation' | 'other';
+  reason_text: string | null;
+  schedule: { day: number; time: string }[];
   start_date: string;
   notes: string | null;
   parent1_name: string;

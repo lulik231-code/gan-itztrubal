@@ -18,6 +18,11 @@ function mirrorWrappingParens(word: string): string {
   // Also covers a trailing punctuation mark after the closing paren, e.g. "(רשות)."
   const m = word.match(/^\((.*)\)([.,:;!?]*)$/);
   if (m) return ")" + m[1] + "(" + m[2];
+  // A parenthesis that opens or closes across several words ("(בני גיל 3 ומעלה)"): the glyph is mirrored
+  // in place, the same way as for a fully wrapped word.
+  if (/^\([^()]*$/.test(word)) return ")" + word.slice(1);
+  const c = word.match(/^([^()]*)\)([.,:;!?]*)$/);
+  if (c) return c[1] + "(" + c[2];
   return word;
 }
 
