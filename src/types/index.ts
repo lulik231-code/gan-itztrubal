@@ -108,6 +108,25 @@ export interface ReleaseRequest {
   children?: Pick<Child, 'id' | 'full_name' | 'class_name'> | null;
 }
 
+export interface StandingRelease {
+  id: string;
+  child_id: string;
+  kindergarten_name: string;
+  release_time: string;
+  start_date: string;
+  notes: string | null;
+  parent1_name: string;
+  parent2_name: string | null;
+  attachments: { path: string; name: string; type: string }[];
+  pdf_storage_path: string;
+  package_storage_path: string;
+  status: 'pending' | 'approved';
+  signed_storage_path: string | null;
+  approved_at: string | null;
+  submitted_at: string;
+  children?: Pick<Child, 'id' | 'full_name' | 'class_name'> | null;
+}
+
 export interface KindergartenTeacher {
   id: string;
   full_name: string;

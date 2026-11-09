@@ -40,9 +40,14 @@ export function drawRTLLine(
   for (let i = 0; i < words.length; i++) {
     const word = words[i];
     if (word.length > 0) {
-      const w = font.widthOfTextAtSize(word, size);
-      page.drawText(word, { x: cursorX - w, y, size, font, color });
-      cursorX -= w;
+      // Punctuation after a number ("13:30," or "15.11.2026.") belongs on the number's left in RTL text.
+      const m = word.match(/^([\d:./\-+]*\d)([.,;!?]+)$/);
+      const parts = m ? [m[1], m[2]] : [word];
+      for (const part of parts) {
+        const w = font.widthOfTextAtSize(part, size);
+        page.drawText(part, { x: cursorX - w, y, size, font, color });
+        cursorX -= w;
+      }
     }
     if (i < words.length - 1) {
       cursorX -= font.widthOfTextAtSize(" ", size);
