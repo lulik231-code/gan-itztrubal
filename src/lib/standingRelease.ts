@@ -52,6 +52,16 @@ export function latestTimeFor(day: number): string {
   return day === 5 ? LATEST_FRIDAY_TIME : LATEST_WEEKDAY_TIME;
 }
 
+/** Every allowed hour for a day, in 5 minute steps (09:00 up to the day's latest time). */
+export function timeOptionsFor(day: number): string[] {
+  const toMin = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
+  const out: string[] = [];
+  for (let m = toMin(EARLIEST_TIME); m <= toMin(latestTimeFor(day)); m += 5) {
+    out.push(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
+  }
+  return out;
+}
+
 export function isFixedType(t: ReleaseType): boolean {
   return t === "daycare" || t === "adaptation";
 }

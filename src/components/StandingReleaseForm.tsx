@@ -16,7 +16,7 @@ import {
   RELEASE_TYPES,
   REASON_MAX_LENGTH,
   isFixedType,
-  latestTimeFor,
+  timeOptionsFor,
   validateSchedule,
   type ReleaseType,
   MAX_ATTACHMENTS,
@@ -307,18 +307,19 @@ export function StandingReleaseForm({ childRoster }: { childRoster: Child[] }) {
                     (isFixedType(releaseType) ? (
                       <span className="text-sm text-pine-dark/70" dir="ltr">{FIXED_TIME}</span>
                     ) : (
-                      <input
-                        type="time"
+                      <select
                         value={times[d.index]}
-                        min={EARLIEST_TIME}
-                        max={latestTimeFor(d.index)}
                         onChange={(e) => {
                           setErrors((p) => ({ ...p, schedule: undefined }));
                           setTimes((prev) => ({ ...prev, [d.index]: e.target.value }));
                         }}
                         dir="ltr"
                         className="rounded-lg border border-line bg-card px-3 py-1.5 text-pine-dark focus:border-amber focus:outline-none"
-                      />
+                      >
+                        {timeOptionsFor(d.index).map((t) => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
                     ))}
                 </div>
               );
