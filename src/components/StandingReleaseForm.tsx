@@ -152,6 +152,7 @@ export function StandingReleaseForm({ childRoster }: { childRoster: Child[] }) {
     const scheduleError = validateSchedule(releaseType, schedule);
     if (scheduleError) e.schedule = scheduleError;
     if (releaseType === "other" && !reasonText.trim()) e.reason = "יש לכתוב את סיבת השחרור";
+    if (releaseType === "other" && files.length === 0) e.files = "בשחרור מסוג אחר יש לצרף אסמכתא, למשל אישור על הטיפול.";
     if (!startDate || (today && startDate < today)) e.startDate = "יש לבחור תאריך מהיום והלאה";
     if (!parent1Name.trim()) e.parent1Name = "שדה חובה";
     if (sig1Ref.current?.isEmpty()) e.signature1 = "יש לחתום";
@@ -354,8 +355,13 @@ export function StandingReleaseForm({ childRoster }: { childRoster: Child[] }) {
       </Card>
 
       <Card className="p-5 flex flex-col gap-4">
-        <h3 className="font-medium text-pine">מסמכים מצורפים (לא חובה)</h3>
+        <h3 className="font-medium text-pine">
+          {releaseType === "other" ? "מסמכים מצורפים (חובה)" : "מסמכים מצורפים (לא חובה)"}
+        </h3>
         <p className="text-sm text-pine-dark/60 -mt-2">
+          {releaseType === "other"
+            ? "יש לצרף אסמכתא לטיפול או לסיבת השחרור, למשל אישור מהמטפל. "
+            : ""}
           עד {MAX_ATTACHMENTS} קבצים, PDF או תמונה. המפקחת תראה אותם יחד עם הטופס.
         </p>
         <div id={errAnchor("files")}>

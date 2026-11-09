@@ -100,6 +100,9 @@ export async function POST(req: NextRequest) {
       }
       attachments.push({ name: f.name.slice(0, 120), type, bytes });
     }
+    if (data.releaseType === "other" && attachments.length === 0) {
+      return NextResponse.json({ error: "בשחרור מסוג אחר יש לצרף אסמכתא לסיבת השחרור." }, { status: 400 });
+    }
     if (total > MAX_TOTAL_BYTES) {
       return NextResponse.json({ error: "סך כל הקבצים גדול מדי (עד 5MB)." }, { status: 400 });
     }
