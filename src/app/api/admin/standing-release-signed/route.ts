@@ -62,7 +62,13 @@ export async function POST(req: NextRequest) {
 
     const { error: updateError } = await supabase
       .from("standing_releases")
-      .update({ status: "approved", signed_storage_path: path, approved_at: new Date().toISOString() })
+      .update({
+        status: "approved",
+        signed_storage_path: path,
+        approved_at: new Date().toISOString(),
+        inspector_token: null,
+        inspector_token_expires_at: null,
+      })
       .eq("id", id);
     if (updateError) {
       console.error("signed update failed:", updateError);

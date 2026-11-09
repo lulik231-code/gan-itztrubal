@@ -2,9 +2,14 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Download, FileText, Loader2, Paperclip, Trash2, Upload, CheckCircle2, Clock, Undo2 } from "lucide-react";
+import { Download, FileText, Loader2, Paperclip, Trash2, Upload, CheckCircle2, Clock, Undo2, Link2, Copy, MessageCircle, Ban } from "lucide-react";
 import { getSignedPdfUrl } from "../events/[eventId]/pdfActions";
-import { deleteStandingReleaseAction, reopenStandingReleaseAction } from "./actions";
+import {
+  deleteStandingReleaseAction,
+  reopenStandingReleaseAction,
+  createInspectorLinkAction,
+  revokeInspectorLinkAction,
+} from "./actions";
 import { formatReleaseDate } from "@/lib/earlyRelease";
 import { releaseTypeLabel, scheduleShort } from "@/lib/standingRelease";
 import type { StandingRelease } from "@/types";
@@ -19,6 +24,53 @@ export function StandingReleasesList({ items }: { items: StandingRelease[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const linkFor = (token: string) => `${window.location.origin}/inspector/${token}`;
+  const isActive = (r: StandingRelease) =>
+    !!r.inspector_token && !!r.inspector_token_expires_at && new Date(r.inspector_token_expires_at) > new Date();
+
+  async function copyText(id: string, text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const el = document.createElement("textarea");
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+    }
+    setCopiedId(id);
+    setTimeout(() => setCopiedId((c) => (c === id ? null : c)), 2500);
+  }
+
+  async function createLink(r: StandingRelease) {
+    setBusy(`ln-${r.id}`);
+    try {
+      const result = await createInspectorLinkAction(r.id, 14);
+      if (!result.success || !result.token) {
+        alert("שגיאה ביצירת הקישור. נסי שוב.");
+        return;
+      }
+      await copyText(r.id, linkFor(result.token));
+      router.refresh();
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function revokeLink(r: StandingRelease) {
+    if (!confirm("לבטל את הקישור? מי שמחזיק בו לא יוכל יותר לפתוח את הטופס.")) return;
+    setBusy(`ln-${r.id}`);
+    try {
+      const result = await revokeInspectorLinkAction(r.id);
+      if (!result.success) alert("שגיאה בביטול הקישור. נסי שוב.");
+      else router.refresh();
+    } finally {
+      setBusy(null);
+    }
+  }
 
   // The tab is opened inside the click so mobile pop-up blockers allow it.
   async function openFile(key: string, path: string) {
@@ -146,6 +198,46 @@ export function StandingReleasesList({ items }: { items: StandingRelease[] }) {
               </button>
             ))}
           </div>
+
+          {r.status === "pending" && (
+            <div className="flex items-center gap-x-5 gap-y-2 flex-wrap rounded-lg bg-sage-light/40 px-3 py-2.5">
+              <span className="flex items-center gap-1.5 text-sm font-medium text-pine-dark">
+                <Link2 className="h-4 w-4" />
+                חתימת המפקחת במערכת
+              </span>
+              {isActive(r) ? (
+                <>
+                  <span className="text-xs text-pine-dark/60">
+                    קישור פעיל עד {formatDate(r.inspector_token_expires_at!)}
+                  </span>
+                  <button className={btn} onClick={() => copyText(r.id, linkFor(r.inspector_token!))}>
+                    <Copy className="h-4 w-4" />
+                    {copiedId === r.id ? "הועתק!" : "העתקת הקישור"}
+                  </button>
+                  <a
+                    className={btn}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href={`https://wa.me/?text=${encodeURIComponent(
+                      `שלום, מצורף קישור לאישור וחתימה על טופס שחרור קבוע מהגן (${r.children?.full_name ?? ""}): ${linkFor(r.inspector_token!)}`
+                    )}`}
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    שליחה בוואטסאפ
+                  </a>
+                  <button className={btn} disabled={busy === `ln-${r.id}`} onClick={() => revokeLink(r)}>
+                    <Ban className="h-4 w-4" />
+                    ביטול הקישור
+                  </button>
+                </>
+              ) : (
+                <button className={btn} disabled={busy === `ln-${r.id}`} onClick={() => createLink(r)}>
+                  {busy === `ln-${r.id}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
+                  יצירת קישור (תקף ל-14 יום)
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="flex items-center gap-x-5 gap-y-2 flex-wrap border-t border-line/60 pt-3">
             <input

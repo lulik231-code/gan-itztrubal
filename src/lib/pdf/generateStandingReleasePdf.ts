@@ -30,8 +30,10 @@ export async function generateStandingReleasePdf(params: {
   child: Child;
   form: StandingReleaseInput;
   submittedAt: Date;
+  /** Present once the inspector has signed on screen. */
+  inspector?: { name: string; signatureDataUrl: string; signedDate: string; signedAt: Date };
 }): Promise<Uint8Array> {
-  const { child, form, submittedAt } = params;
+  const { child, form, submittedAt, inspector } = params;
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
   const { regular, bold } = loadFontBytes();
@@ -150,10 +152,30 @@ export async function generateStandingReleasePdf(params: {
   drawRTLLine(page, "אישור המפקח/ת", { rightX: RIGHT, y, size: 13, font: fontBold, color: BLACK });
   y -= 52;
   line(RIGHT - 260, RIGHT, y);
+  if (inspector) {
+    const insSig = await embedSignature(pdfDoc, inspector.signatureDataUrl);
+    if (insSig) {
+      const scale = Math.min(250 / insSig.width, 46 / insSig.height, 1);
+      const w = insSig.width * scale;
+      const h = insSig.height * scale;
+      page.drawImage(insSig, { x: RIGHT - 260 + (260 - w) / 2, y: y + 2, width: w, height: h });
+    }
+    const nameW = measureRTLLine(inspector.name, 11, font);
+    drawRTLLine(page, inspector.name, { rightX: RIGHT - 130 + nameW / 2, y: y - 17, size: 11, font, color: BLACK });
+    drawRTLLine(page, `תאריך: ${formatReleaseDate(inspector.signedDate)}`, {
+      rightX: RIGHT - 260 - 18, y: y + 2, size: SIZE, font, color: BLACK,
+    });
+  }
 
   drawRTLLine(page, `נחתם על ידי ההורים דיגיטלית במערכת גן אצטרובל ביום ${formatDateTimeHebrew(submittedAt)}`, {
     rightX: RIGHT, y: 40, size: 8, font, color: GRAY,
   });
+
+  if (inspector) {
+    drawRTLLine(page, `אושר דיגיטלית על ידי ${inspector.name} ביום ${formatDateTimeHebrew(inspector.signedAt)}`, {
+      rightX: RIGHT, y: 28, size: 8, font, color: GRAY,
+    });
+  }
 
   return pdfDoc.save();
 }

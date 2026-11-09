@@ -125,6 +125,9 @@ export interface StandingRelease {
   status: 'pending' | 'approved';
   signed_storage_path: string | null;
   approved_at: string | null;
+  inspector_token: string | null;
+  inspector_token_expires_at: string | null;
+  inspector_name: string | null;
   submitted_at: string;
   children?: Pick<Child, 'id' | 'full_name' | 'class_name'> | null;
 }
